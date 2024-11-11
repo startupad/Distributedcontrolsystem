@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <title>User-Interface</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <style>
+      /* Estilos básicos para los pasos */
+      .step {
+        display: none;
+      }
+      .step.active {
+        display: block;
+      }
+      .button-container {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Distributed Control System</h1>
+
+    <!-- Contenedor de pasos -->
+
+    <div id="step-1" class="step active">
+      <h2>Step 1: <span>Assign control priorities to field zones</span></h2>
+      <p>
+        Assign priorities to different zones of the field, indicating which
+        areas need more focused monitoring and control.
+      </p>
+
+      <!-- Matrice di 6x6 -->
+      <div id="grid" class="grid">
+        <!-- I blocchi verranno generati dinamicamente con JavaScript -->
+      </div>
+
+      <!-- Informazioni sotto la matrice -->
+      <p><em>Click on each block to set the priority level:</em></p>
+      <ul>
+        <li><em>Green - Priority 1 (Low)</em></li>
+        <li><em>Yellow - Priority 2 (Medium)</em></li>
+        <li><em>Red - Priority 3 (High)</em></li>
+      </ul>
+
+      <!-- Bottone per inviare la matrice -->
+      <button onclick="savePriorities()">
+        Save priorities and start drones
+      </button>
+    </div>
+
+    <script>
+      const grid = document.getElementById("grid");
+      const matrix = Array.from({ length: 6 }, () => Array(6).fill(1)); // Matrice iniziale 6x6 con priorità 1
+
+      // Genera la griglia dinamicamente
+      for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < 6; j++) {
+          const block = document.createElement("div");
+          block.classList.add("block", "priority-1"); // Priorità 1 di default
+          block.textContent = "1"; // Valore di priorità iniziale
+
+          // Gestione del click per cambiare la priorità
+          block.addEventListener("click", () => {
+            let currentPriority = parseInt(block.textContent);
+            let newPriority = (currentPriority % 3) + 1; // Cicla tra 1, 2 e 3
+
+            // Aggiorna il testo e la classe CSS in base alla nuova priorità
+            block.textContent = newPriority;
+            block.className = "block priority-" + newPriority;
+            matrix[i][j] = newPriority; // Aggiorna la matrice con la nuova priorità
+          });
+
+          grid.appendChild(block);
+        }
+      }
+
+      // Funzione per inviare la matrice al backend
+      function savePriorities() {
+        fetch("/save-priorities", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ priorities: matrix }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              alert("Priorities saved successfully and drones started!");
+              nextStep(); // Vai al prossimo step senza cambiare pagina
+            } else {
+              showError("Failed to save priorities. Please try again.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      // Funzione per mostrare un messaggio di errore in Step 1
+      function showError(message) {
+        let errorMessage = document.getElementById("error-message");
+
+        if (!errorMessage) {
+          // Crea un nuovo elemento per il messaggio di errore se non esiste già
+          errorMessage = document.createElement("p");
+          errorMessage.id = "error-message";
+          errorMessage.style.color = "red";
+          document.getElementById("step-1").appendChild(errorMessage);
+        }
+
+        // Imposta il messaggio di errore
+        errorMessage.textContent = message;
+      }
+    </script>
+
+    <div id="step-2" class="step">
+      <h2>Step 2: Visualize Drones Data</h2>
+      <p>
+        In this section, you will be able to visualize the data collected by the
+        drones. Here, you can monitor the status of your field, including areas
+        of high priority and any anomalies detected during the monitoring
+        process. The visual representation will help you make informed decisions
+        for managing your field more effectively.
+      </p>
+
+      <!-- Loading indicator -->
+      <div id="loading" class="loading">Loading processed matrix...</div>
+
+      <!-- Processed matrix -->
+      <div id="processed-matrix" class="grid" style="display: none"></div>
+      <button onclick="nextStep()">Start Tractors and Plan Treatment</button>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Show the loading indicator
+        const loadingElement = document.getElementById("loading");
+        loadingElement.style.display = "block"; // Ensure it's visible
+
+        // Make the request to get the processed matrix
+        fetch("/get-processed-matrix")
+          .then((response) => response.json())
+          .then((data) => {
+            // Hide the loading indicator
+            loadingElement.style.display = "none";
+
+            // Show the matrix container
+            const matrixContainer = document.getElementById("processed-matrix");
+            matrixContainer.style.display = "grid"; // Use grid for display
+
+            // Clear any existing content
+            matrixContainer.innerHTML = "";
+
+            // Create the blocks based on the matrix
+            const matrix = data; // Use the data directly
+            matrix.forEach((row) => {
+              row.forEach((value) => {
+                const block = document.createElement("div");
+                block.classList.add("block", "priority-" + value);
+                block.textContent = value; // Display value in the block
+
+                matrixContainer.appendChild(block);
+              });
+            });
+          })
+          .catch((error) => {
+            console.error("Error loading the matrix:", error);
+            // Display an error message
+            const errorMessage = document.createElement("p");
+            errorMessage.style.color = "red";
+            errorMessage.textContent = "Error loading the matrix.";
+            document.getElementById("step-2").appendChild(errorMessage);
+            // Hide the loading indicator
+            loadingElement.style.display = "none";
+          });
+      });
+    </script>
+
+    <div id="step-3" class="step">
+      <h2>Step 3: Conferma e Salva</h2>
+      <p>Verifica i dettagli inseriti e conferma...</p>
+      <!-- Contenido de la etapa 3 -->
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="button-container">
+      <button id="prev-btn" onclick="prevStep()" disabled>Indietro</button>
+    </div>
+
+    <script>
+      let currentStep = 1;
+
+      function showStep(step) {
+        document.querySelectorAll(".step").forEach((element, index) => {
+          element.classList.remove("active");
+          if (index + 1 === step) {
+            element.classList.add("active");
+          }
+        });
+
+        document.getElementById("prev-btn").disabled = step === 1;
+        document.getElementById("next-btn").textContent =
+          step === 3 ? "Conferma" : "Avanti";
+      }
+
+      function nextStep() {
+        if (currentStep < 3) {
+          currentStep++;
+          showStep(currentStep);
+        } else {
+          alert("Processo completato!");
+        }
+      }
+
+      function prevStep() {
+        if (currentStep > 1) {
+          currentStep--;
+          showStep(currentStep);
+        }
+      }
+    </script>
+  </body>
+</html>
