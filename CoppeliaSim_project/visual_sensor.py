@@ -53,4 +53,12 @@ class VisualSensor:
         elif read_result == -1:
             print("Sensor initialization error.")
         else:
-            return aux_packet
+            if aux_packet[11] >= 0.9 and aux_packet[12] <= 0.1 and aux_packet[13] <= 0.1:
+                return 3  # red
+            elif aux_packet[11] >= 0.9 and aux_packet[12] >= 0.9 and aux_packet[13] <= 0.1:
+                return 2  # yellow
+            elif aux_packet[11] <= 0.1 and aux_packet[12] >= 0.9 and aux_packet[13] <= 0.1:
+                return 1  # green
+            else:
+                print("too strange color found: ")
+                return aux_packet[11:14]
