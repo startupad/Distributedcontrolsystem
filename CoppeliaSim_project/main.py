@@ -24,10 +24,8 @@ def main():
     # Definizione delle configurazioni target per ciascun drone in modo dinamico
     target_configs = []
     for i in range(n_drones):
-        target_configs.append([i+1, 0, 1, 0, 0, 0, 1])
-
-    for drone, target_config in zip(drones, target_configs):
-        drone.calculate_new_path(target_config)
+        target_configs = [i+1, 0, 1, 0, 0, 0, 1]
+        drones[i].calculate_new_path(target_configs)
 
     # Ciclo di simulazione
     for i in range(1000):
