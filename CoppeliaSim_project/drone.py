@@ -16,7 +16,7 @@ class Drone:
         self.config_to_reach = []
 
         # Caricamento del modello del drone
-        path_drone = "CoppeliaSim_Edu_V4_7_0_rev4_Ubuntu24_04/models/robots/mobile/Quadcopter.ttm"
+        path_drone = "models/robots/mobile/Quadcopter.ttm"
         self.handle_drone = self.sim.loadModel(path_drone)
         if self.handle_drone == -1:
             print(f"Error loading model for Drone {self.id}: ", self.handle_drone)
@@ -34,7 +34,7 @@ class Drone:
         self.sim.setObjectParent(self.sensor.handle_sensor, self.handle_drone, False)
 
         # Imposta il target
-        self.target_handle = self.sim.getObject(":/target", {'index': 0, 'noError': True})
+        self.target_handle = self.sim.getObject(":/target", {'index': int(self.id)-1, 'noError': True})
         self.sim.setObjectPosition(self.target_handle, -1, starting_config[0:3])
 
     def get_position(self):

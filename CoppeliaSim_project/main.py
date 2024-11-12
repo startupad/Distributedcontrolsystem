@@ -12,30 +12,25 @@ def main():
     # Creazione del terreno
     terrain = Terrain(sim)
 
-    # Configurazione iniziale e creazione di più droni
+    # Configurazione iniziale e creazione di più droni in modo dinamico
     drones = []
-    initial_configs = [
-        [0, 0, 0.5, 0, 0, 0, 1],
-        [2, 0, 0.5, 0, 0, 0, 1],
-        [0, 2, 0.5, 0, 0, 0, 1]
-    ]
+    n_drones = 3
 
-    for i, config in enumerate(initial_configs):
-        drone = Drone(sim, id=str(i+1), starting_config=config)
+    for i in range(n_drones):
+        initial_config = [i+1, 0, 0.5*(1+i), 0, 0, 0, 1]
+        drone = Drone(sim, id=str(i+1), starting_config=initial_config)
         drones.append(drone)
 
-    # Definizione delle configurazioni target per ciascun drone
-    target_configs = [
-        [2, 2, 0.5, 0, 0, 0, 1],
-        [4, 4, 0.5, 0, 0, 0, 1],
-        [6, 6, 0.5, 0, 0, 0, 1]
-    ]
+    # Definizione delle configurazioni target per ciascun drone in modo dinamico
+    target_configs = []
+    for i in range(n_drones):
+        target_configs.append([i+1, 0, 1, 0, 0, 0, 1])
 
     for drone, target_config in zip(drones, target_configs):
         drone.calculate_new_path(target_config)
 
     # Ciclo di simulazione
-    for i in range(150):
+    for i in range(1000):
         for drone in drones:
             drone.next_animation_step()
         terrain.update_terrain_colors()
