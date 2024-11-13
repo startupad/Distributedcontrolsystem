@@ -5,7 +5,6 @@ from terrain import Terrain
 def main():
     client = RemoteAPIClient()
     sim = client.require('sim')
-
     sim.setStepping(True)
     sim.startSimulation()
 
@@ -31,9 +30,10 @@ def main():
     for i in range(1000):
         for drone in drones:
             drone.next_animation_step()
-        terrain.update_terrain_colors()
         for drone in drones:
-            print(f'Drone {drone.id} position: {drone.get_position()}')
+            # print(f'Drone {drone.id} position: {drone.get_position()}')
+            print("drone", drone.id, "read color: ", drone.read_sensor())
+            # pass
         sim.step()
 
     sim.stopSimulation()
