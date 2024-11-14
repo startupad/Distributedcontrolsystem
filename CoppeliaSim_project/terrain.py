@@ -8,7 +8,7 @@ class Terrain:
         self.sim = sim
         self.texture_file_name = "texture.png"
         self.last_color_change_time = 0
-        self.colors = ["#468a49", "#98FB98", "#c1a62a"]  # Marroncino, Verde chiaro, Verde scuro
+        self.colors = ["#2e7411", "#a7ee89", "#c1951c"]  # verde scuro, verde chiaro, marroncino
         self.width = 10
         self.length = 10
         self.height = 0.1
@@ -33,7 +33,7 @@ class Terrain:
         X, Y = np.meshgrid(x, y)
 
         # Define the components for a good Gaussian Mixture Model (GMM)
-        # means = [(0.1, 0.1), (0.2, 0.8), (1.1, 0.5)]  # Three Gaussian means
+        #means = [(0.1, 0.1), (0.5, 0.5), (1.1, 0.5)]  # Three Gaussian means
         sigmas = [0.3, 0.3, 0.4]  # Standard deviation = variance for each Gaussian component
         #weights = [0.25, 0.35, 0.40]  # Weights for each component, they sum to 1
 
@@ -44,7 +44,6 @@ class Terrain:
         weights = np.random.rand(3)
         weights /= weights.sum()  # Normalize so that they sum to 1
 
-
         # Calculate Gaussian Mixture Model (GMM) values over the grid
         Z = np.array([self.gauss_pdf_mixture(x, y, means, sigmas, weights) for x, y in zip(np.ravel(X), np.ravel(Y))])
         Z = Z.reshape(X.shape)
@@ -52,7 +51,7 @@ class Terrain:
         # Create a custom colormap
         cmap = LinearSegmentedColormap.from_list("field_colors", self.colors, N=256)
 
-        #setup fig dimensions --> use the /2.54 to convert from inches to cm
+        # setup fig dimensions --> use the /2.54 to convert from inches to cm
         fig = plt.figure(figsize=(100 / 2.54, 100 / 2.54))
 
         # Plot the Gaussian Mixture Model distribution as a heatmap
@@ -77,6 +76,7 @@ class Terrain:
         self.sim.setShapeTexture(self.terrain_handle, self.texture_id, self.sim.texturemap_plane, 2,
                                  [self.width, self.length], None, None)
 
+        self.sim.setObjectPosition(shape, -1, [50, 50, 50])
     def gauss_pdf_mixture(self, x, y, means, sigmas, weights):
         """
         Calculate the value of a Gaussian Mixture Model (GMM) at point (x, y).
