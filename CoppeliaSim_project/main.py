@@ -1,6 +1,8 @@
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 from drone import Drone
 from terrain import Terrain
+from fly_controller import FlyController
+
 
 def main():
     client = RemoteAPIClient()
@@ -8,36 +10,55 @@ def main():
     sim.setStepping(True)
     sim.startSimulation()
 
+    # define variable to remember previous time
+    t_previous = 0
+
     # Creazione del terreno
     terrain = Terrain(sim)
 
     # Configurazione iniziale e creazione di più droni in modo dinamico
+    n_drones = get_n_drones()
     drones = []
-    n_drones = 3
-
-    for i in range(n_drones):
-        initial_config = [i+1, 0, 0.5*(1+i), 0, 0, 0, 1]
-        drone = Drone(sim, id=str(i+1), starting_config=initial_config)
-        drones.append(drone)
 
     # Definizione delle configurazioni target per ciascun drone in modo dinamico
-    target_configs = []
     for i in range(n_drones):
-        target_configs = [i*1, 0, 1, 0, 0, 0, 1]
-        drones[i].calculate_new_path(target_configs)
+        initial_config = [i + 1, 0, 0.5 * (1 + i), 0, 0, 0, 1]
+        drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
+        drones.append(drone)
+
+    # build the fly controller
+    fc = FlyController(sim, drones)
+    target_configs = [[3, 3, 1.5, 0, 0, 0, 1]]
+
+    # to avoid error during calculations of protocols involving delta t, we need to start with first t value != 0
+    # then, I simply need to take the first simulation step before the simulation cycle
+    sim.step()
 
     # Ciclo di simulazione
-    for i in range(1000):
+    for i in range(350):
+        # compute actual time
+        t = sim.getSimulationTime()
+
+        a = fc.rendezvous_protocol(t - t_previous, target_configs)
+
+        for k in range(len(drones)):
+            drones[k].calculate_new_path(a[k])
+
         for drone in drones:
             drone.next_animation_step()
-        for drone in drones:
             # print(f'Drone {drone.id} position: {drone.get_position()}')
-            print("drone", drone.id, "read color: ", drone.read_sensor())
-            # pass
+            # print("drone", drone.id, "read color: ", drone.read_sensor())
+
         sim.step()
 
     sim.stopSimulation()
     print("Simulation ended")
+
+
+# definition of the function that retrieves the number of drones from the interface
+def get_n_drones():
+    return 3
+
 
 if __name__ == "__main__":
     main()
