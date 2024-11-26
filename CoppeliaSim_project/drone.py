@@ -34,7 +34,7 @@ class Drone:
         self.sim.setObjectParent(self.sensor.handle_sensor, self.handle_drone, False)
 
         # Imposta il target
-        self.target_handle = self.sim.getObject(":/target", {'index': int(self.id)-1, 'noError': True})
+        self.target_handle = self.sim.getObject(":/target", {'index': int(self.id) - 1, 'noError': True})
         self.sim.setObjectPosition(self.target_handle, -1, starting_config[0:3])
 
     def get_position(self):
@@ -63,3 +63,8 @@ class Drone:
     def read_sensor(self):
         # Legge i dati dal sensore visivo
         return self.sensor.read_sensor()
+
+    def get_drone_config_info(self):
+        pos = self.sim.getObjectPosition(self.target_handle, self.sim.handle_world)
+        orientation = self.sim.getObjectQuaternion(self.target_handle, self.sim.handle_world)
+        return pos, orientation
