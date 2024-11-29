@@ -1,7 +1,10 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from math import exp
+
 
 class Terrain:
     def __init__(self, sim):
@@ -33,9 +36,9 @@ class Terrain:
         X, Y = np.meshgrid(x, y)
 
         # Define the components for a good Gaussian Mixture Model (GMM)
-        #means = [(0.1, 0.1), (0.5, 0.5), (1.1, 0.5)]  # Three Gaussian means
+        # means = [(0.1, 0.1), (0.5, 0.5), (1.1, 0.5)]  # Three Gaussian means
         sigmas = [0.3, 0.3, 0.4]  # Standard deviation = variance for each Gaussian component
-        #weights = [0.25, 0.35, 0.40]  # Weights for each component, they sum to 1
+        # weights = [0.25, 0.35, 0.40]  # Weights for each component, they sum to 1
 
         # Generate 3 random Gaussian means as 2D tuples (x, y)
         means = [(np.random.uniform(xlim[0], xlim[1]), np.random.uniform(ylim[0], ylim[1])) for _ in range(3)]
@@ -66,17 +69,22 @@ class Terrain:
         plt.show()
 
         # Create a primitive texture shape (small plane)
-        path = "C:/Users/igord/Desktop/distributed control system/Distributedcontrolsystem/CoppeliaSim_project/texture.png"
+        # Ensure absolute path
+        path = os.path.abspath("texture.png")
+        print("Absolute path to texture:", path)
+
         shape, self.texture_id, res = self.sim.createTexture(path, 2, [1, 1], [2, 2], [0, 0, 0], 128, None)
 
         # Create terrain  = primitive plane
-        self.terrain_handle = self.sim.createPrimitiveShape(self.sim.primitiveshape_plane, [self.width, self.length, 1],0)
+        self.terrain_handle = self.sim.createPrimitiveShape(self.sim.primitiveshape_plane, [self.width, self.length, 1],
+                                                            0)
 
         # Cover the terrain with the texture
         self.sim.setShapeTexture(self.terrain_handle, self.texture_id, self.sim.texturemap_plane, 2,
                                  [self.width, self.length], None, None)
 
         self.sim.setObjectPosition(shape, -1, [50, 50, 50])
+
     def gauss_pdf_mixture(self, x, y, means, sigmas, weights):
         """
         Calculate the value of a Gaussian Mixture Model (GMM) at point (x, y).
