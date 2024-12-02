@@ -67,20 +67,19 @@ class FlyController:
 
         return matrix_drone_config
 
-    def consensus_protocol(self, var_to_sync: list):
+    def consensus_protocol(self, var_to_sync: np.array):
         # il consensus MUST concern itself only around the calculus of the input var's changing ratio
 
         # var_to_sync MUST be a matrix [n_drones][7]
         z = var_to_sync
 
         # compute matrices for this time step
-        lap, delta = self.update_matrices()
+        ### momentaneamente non utilizzato, finchè non sarà chiaro come modificare le Wij della mat ADJ ###
+        # lap, delta = self.update_matrices()
 
         # define z_t as my next step configuration
         z_dot = []
-
-        # computing z_t as: z_t[i] = z[i] - delta_t * lap * z[i]
-        z_dot = np.dot(lap, z)
+        z_dot = np.dot(self.matrix_laplacian, z)
 
         # round the values of z_t to their third decimal value, to prevent the over-usage of the consensus
         # and the consequential divergence due to approximation errors
@@ -92,18 +91,23 @@ class FlyController:
         # compute actual drones position as numpy array
         matrix_drone_config = np.array(self.compute_drone_actual_config_matrix())
 
+        ### per il momento crea le matrici con questa funzione anche se ADJ e LAP non vanno bene
+        ### poi le correggi con le righe di codice sotto
+        self.update_matrices()
+
         for i in range(self.n_drones):
             for j in range(self.n_drones):
                 if i != j:
-                    ### chiedi al prof come definire wij per fare si che i tuoi droni confluiscano nella target config ###
-                    self.matrix_adj[i][j] = pow(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]), 2)
+                    ### chiedi al prof come definire wij per fare si che i tuoi droni confluiscano nella target config e non nella config intermedia ###
+                    # self.matrix_adj[i][j] = pow(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]), 2)
+                    self.matrix_adj[i][j] = 1
 
         print("adj: ", np.round(self.matrix_adj, 3))
         self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
 
         # computing the new target configs using the consensus protocol to compute the error rate
         # lap,adj = self.update_matrices()
-        rate = np.dot(delta_t, np.dot(self.matrix_laplacian, matrix_drone_config))
+        rate = np.dot(delta_t, self.consensus_protocol(matrix_drone_config))
         print("rate = ", np.round(rate, 3))
         new_drone_targets_config = np.subtract(matrix_drone_config, rate)
 
@@ -111,3 +115,6 @@ class FlyController:
         print("new config: ", new_drone_targets_config)
         # converting the numpy array into a normal one
         return new_drone_targets_config.tolist()
+
+    def formation_control(self):
+        pass

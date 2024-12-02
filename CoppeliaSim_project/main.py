@@ -22,7 +22,7 @@ def main():
 
     # Definizione delle configurazioni target per ciascun drone in modo dinamico
     for i in range(n_drones):
-        initial_config = [i + 0.5, 0, 0, 0, 0, 0, 1]
+        initial_config = [i + 0.5, 0, 0.5, 0, 0, 0, 1]
         drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
         drones.append(drone)
 
@@ -35,7 +35,7 @@ def main():
     sim.step()
 
     # Ciclo di simulazione
-    for i in range(350):
+    for i in range(700):
         # compute actual time
         t = sim.getSimulationTime()
 
