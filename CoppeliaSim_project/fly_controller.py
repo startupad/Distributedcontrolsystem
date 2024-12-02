@@ -1,5 +1,5 @@
 import numpy as np
-
+import math
 
 class FlyController:
     def __init__(self, sim, drones_list):
@@ -43,7 +43,7 @@ class FlyController:
 
         # calculate the laplacian matrix using the formula L = delta -adj
         self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
-
+        # print("laplacian: ", self.matrix_laplacian)
         return self.matrix_laplacian, self.matrix_delta
 
     def compute_drone_actual_config_matrix(self):
@@ -67,7 +67,7 @@ class FlyController:
 
         return matrix_drone_config
 
-    def consensus_protocol(self, delta_t, var_to_sync: list):
+    def consensus_protocol(self, var_to_sync: list):
         # il consensus MUST concern itself only around the calculus of the input var's changing ratio
 
         # var_to_sync MUST be a matrix [n_drones][7]
@@ -92,17 +92,22 @@ class FlyController:
         # compute actual drones position as numpy array
         matrix_drone_config = np.array(self.compute_drone_actual_config_matrix())
 
-        # print("drones config: ", np.round(matrix_drone_config,3))
+        for i in range(self.n_drones):
+            for j in range(self.n_drones):
+                if i != j:
+                    ### chiedi al prof come definire wij per fare si che i tuoi droni confluiscano nella target config ###
+                    self.matrix_adj[i][j] = pow(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]), 2)
 
-        # compute the error between each drone config and the target config
-        matrix_error = np.subtract(matrix_drone_config, target_config)
-
-        # print("error: ", np.round(matrix_error,3))
+        print("adj: ", np.round(self.matrix_adj, 3))
+        self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
 
         # computing the new target configs using the consensus protocol to compute the error rate
-        new_drone_targets_config = np.round(
-            np.subtract(matrix_drone_config, np.dot(delta_t, self.consensus_protocol(delta_t, matrix_error))), 3)
+        # lap,adj = self.update_matrices()
+        rate = np.dot(delta_t, np.dot(self.matrix_laplacian, matrix_drone_config))
+        print("rate = ", np.round(rate, 3))
+        new_drone_targets_config = np.subtract(matrix_drone_config, rate)
 
-        # converting the numpy array into a normal one
+        new_drone_targets_config = np.round(new_drone_targets_config, 3)
         print("new config: ", new_drone_targets_config)
+        # converting the numpy array into a normal one
         return new_drone_targets_config.tolist()

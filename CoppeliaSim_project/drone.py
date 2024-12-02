@@ -43,7 +43,10 @@ class Drone:
     def next_animation_step(self):
         self.t = self.sim.getSimulationTime()
         self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
+        # print("path: ", self.path)
+        # print("pos_along: ", self.posAlongPath)
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
+        # print("config: ", config)
         if config:
             self.sim.setObjectPosition(self.target_handle, config[0:3], self.sim.handle_world)
             self.sim.setObjectQuaternion(self.target_handle, config[3:7], self.sim.handle_world)

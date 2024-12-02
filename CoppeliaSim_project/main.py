@@ -22,13 +22,13 @@ def main():
 
     # Definizione delle configurazioni target per ciascun drone in modo dinamico
     for i in range(n_drones):
-        initial_config = [i + 1, 0, 0.5 * (1 + i), 0, 0, 0, 1]
+        initial_config = [i + 0.5, 0, 0, 0, 0, 0, 1]
         drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
         drones.append(drone)
 
     # build the fly controller
     fc = FlyController(sim, drones)
-    target_configs = [[3, 3, 1.5, 0, 0, 0, 1]]
+    target_configs = [3, 0, 0, 0, 0, 0, 1]
 
     # to avoid error during calculations of protocols involving delta t, we need to start with first t value != 0
     # then, I simply need to take the first simulation step before the simulation cycle
@@ -40,15 +40,16 @@ def main():
         t = sim.getSimulationTime()
 
         a = fc.rendezvous_protocol(t - t_previous, target_configs)
-
+        t_previous = t
         for k in range(len(drones)):
+            # print("a_k: ",a[k])
             drones[k].calculate_new_path(a[k])
 
         for drone in drones:
             drone.next_animation_step()
             # print(f'Drone {drone.id} position: {drone.get_position()}')
             # print("drone", drone.id, "read color: ", drone.read_sensor())
-
+            # pass
         sim.step()
 
     sim.stopSimulation()
