@@ -31,7 +31,7 @@ class FlyController:
         self.matrix_laplacian = np.zeros((self.n_drones, self.n_drones))
 
         ### this part is usefull only if we decide that our drones have limited communication range ###
-        # define the adjacency matrix as matrix where the i-j th element is = 1 if i and j elements are neighbours
+
         for i in range(self.n_drones):
             for j in range(self.n_drones):
                 # fill only the diagonal elements
@@ -42,10 +42,12 @@ class FlyController:
                         self.matrix_drone_config = np.array(self.compute_drone_actual_config_matrix())
                         # check what type of protocol we are using and prepare the respective adj matrix
                         if type_of_algorthm == 'c':
+                            # for the consensus, we want a matrix where the i-j th element is = 1 if i and j elements are neighbours
                             self.matrix_adj[i, j] = 1
                         elif type_of_algorthm == 'r':
                             pass
                         elif type_of_algorthm == 'f':
+                            # for the formation, we want a matrix where each element integrate the Connectivity algorithm
                             norm[i, j] = np.linalg.norm(
                                 np.subtract(self.matrix_drone_config[i], self.matrix_drone_config[j]))
                             self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / norm[i, j]) / pow(
@@ -59,7 +61,6 @@ class FlyController:
 
         # calculate the laplacian matrix using the formula L = delta -adj
         self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
-        # print("laplacian: ", self.matrix_laplacian)
 
     def compute_drone_actual_config_matrix(self):
         ### we need to decide if we want to pick data from a central server or talking directly with other obj !!!!!!!!!!!!
@@ -105,32 +106,18 @@ class FlyController:
         # compute actual drones position as numpy array
         matrix_drone_config = np.array(self.compute_drone_actual_config_matrix())
 
-        ### per il momento crea le matrici con questa funzione anche se ADJ e LAP non vanno bene
-        ### poi le correggi con le righe di codice sotto
-        self.update_matrices()
+        self.update_matrices('r')
 
-        for i in range(self.n_drones):
-            for j in range(self.n_drones):
-                if i != j:
-                    ### chiedi al prof come definire wij per fare si che i tuoi droni confluiscano nella target config e non nella config intermedia ###
-                    # self.matrix_adj[i][j] = pow(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]), 2)
-                    # self.matrix_adj[i][j] = 1
-                    self.matrix_adj[i][j] = np.divide(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]),
-                                                      target_config[j] - matrix_drone_config[i][j])
+        # computing the new target exploiting the consensus protocol theory to compute the variation rate
 
-        print("adj: ", np.round(self.matrix_adj, 3))
-        self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
-
-        # computing the new target configs using the consensus protocol to compute the error rate
-        # lap,adj = self.update_matrices()
         rate = np.dot(delta_t, self.consensus_protocol(matrix_drone_config))
-        print("rate = ", np.round(rate, 3))
+
         new_drone_targets_config = np.subtract(matrix_drone_config, rate)
 
+        # rounding the results to avoid approximation errors
         new_drone_targets_config = np.round(new_drone_targets_config, 3)
-        print("new config: ", new_drone_targets_config)
-        # converting the numpy array into a normal one
-        return new_drone_targets_config.tolist()
+
+        return new_drone_targets_config
 
     def formation_control(self, delta_t, interdrones_distances):
 
@@ -143,7 +130,7 @@ class FlyController:
         # print("lap: ", self.matrix_laplacian)
         # print("t: ", delta_t)
 
-        # computing the new correction rate
+        # computing the new correction rate exploiting the consensus protocol theory
         rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
         print("rate = ", np.round(rate, 3))
 
