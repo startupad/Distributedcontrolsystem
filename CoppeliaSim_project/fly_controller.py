@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+
 class FlyController:
     def __init__(self, sim, drones_list):
         self.sim = sim
@@ -14,13 +15,15 @@ class FlyController:
 
         # define the min-max distance in meters between the drones
         self.dist_max = 3
-        self.dist_min = 0.5
 
         # define a matrix to store the inter-drone distances of our formation, by default all dist < dmax
         # --> we get a full connected graph
-        self.matrix_interdrones_distance = np.full((self.n_drones, self.n_drones), (self.dist_max - 1))
+        self.matrix_interdrones_distance = np.zeros((self.n_drones, self.n_drones))
 
-    def update_matrices(self):
+        # define a matrix where to store the actual drone positions info
+        self.matrix_drone_config = np.zeros((self.n_drones, self.n_drones))
+
+    def update_matrices(self, type_of_algorthm):
 
         # reset the three basic matrices at each iteration
         self.matrix_delta = np.zeros((self.n_drones, self.n_drones))
@@ -31,12 +34,25 @@ class FlyController:
         # define the adjacency matrix as matrix where the i-j th element is = 1 if i and j elements are neighbours
         for i in range(self.n_drones):
             for j in range(self.n_drones):
-                # checks if the i-th drone is sufficiently near to the j drones
-                if self.matrix_interdrones_distance[i][j] <= self.dist_max:
-                    self.matrix_adj[i][j] = 1
+                # fill only the diagonal elements
+                if i != j:
+                    # checks if the i-th drone is sufficiently near to the j drones
+                    if self.matrix_interdrones_distance[i][j] <= self.dist_max:
+                        norm = np.zeros((3, 3))
+                        self.matrix_drone_config = np.array(self.compute_drone_actual_config_matrix())
+                        # check what type of protocol we are using and prepare the respective adj matrix
+                        if type_of_algorthm == 'c':
+                            self.matrix_adj[i, j] = 1
+                        elif type_of_algorthm == 'r':
+                            pass
+                        elif type_of_algorthm == 'f':
+                            norm[i, j] = np.linalg.norm(
+                                np.subtract(self.matrix_drone_config[i], self.matrix_drone_config[j]))
+                            self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / norm[i, j]) / pow(
+                                (self.dist_max - norm[i, j]), 3)
 
         # define delta as matrix where the diagonal elements are = to the degree of node i
-        # degree = number of connections of the node
+        # degree = number of connections of the node = sum of the elements in each row of the adjacency matrix
         for i in range(self.n_drones):
             for j in range(self.n_drones):
                 self.matrix_delta[i][i] += self.matrix_adj[i][j]
@@ -44,7 +60,6 @@ class FlyController:
         # calculate the laplacian matrix using the formula L = delta -adj
         self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
         # print("laplacian: ", self.matrix_laplacian)
-        return self.matrix_laplacian, self.matrix_delta
 
     def compute_drone_actual_config_matrix(self):
         ### we need to decide if we want to pick data from a central server or talking directly with other obj !!!!!!!!!!!!
@@ -65,20 +80,19 @@ class FlyController:
             pos, orientation = self.drones_list[i].get_drone_config_info()
             matrix_drone_config.append(pos + orientation)
 
-        return matrix_drone_config
+        # converting to np array
+        return np.array(matrix_drone_config)
 
-    def consensus_protocol(self, var_to_sync: np.array):
+    def consensus_protocol(self, var_to_sync):
         # il consensus MUST concern itself only around the calculus of the input var's changing ratio
 
         # var_to_sync MUST be a matrix [n_drones][7]
         z = var_to_sync
 
         # compute matrices for this time step
-        ### momentaneamente non utilizzato, finchè non sarà chiaro come modificare le Wij della mat ADJ ###
-        # lap, delta = self.update_matrices()
+        self.update_matrices('c')
 
-        # define z_t as my next step configuration
-        z_dot = []
+        # define z_dot as my next step configuration
         z_dot = np.dot(self.matrix_laplacian, z)
 
         # round the values of z_t to their third decimal value, to prevent the over-usage of the consensus
@@ -100,7 +114,9 @@ class FlyController:
                 if i != j:
                     ### chiedi al prof come definire wij per fare si che i tuoi droni confluiscano nella target config e non nella config intermedia ###
                     # self.matrix_adj[i][j] = pow(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]), 2)
-                    self.matrix_adj[i][j] = 1
+                    # self.matrix_adj[i][j] = 1
+                    self.matrix_adj[i][j] = np.divide(np.linalg.norm(target_config[j] - matrix_drone_config[i][j]),
+                                                      target_config[j] - matrix_drone_config[i][j])
 
         print("adj: ", np.round(self.matrix_adj, 3))
         self.matrix_laplacian = np.subtract(self.matrix_delta, self.matrix_adj)
@@ -116,5 +132,25 @@ class FlyController:
         # converting the numpy array into a normal one
         return new_drone_targets_config.tolist()
 
-    def formation_control(self):
-        pass
+    def formation_control(self, delta_t, interdrones_distances):
+
+        self.matrix_interdrones_distance = interdrones_distances
+        self.update_matrices('f')
+        self.matrix_drone_config = self.compute_drone_actual_config_matrix()
+
+        # print("dist: ", self.matrix_interdrones_distance)
+        print("drones: ", np.round(self.matrix_drone_config, 3))
+        # print("lap: ", self.matrix_laplacian)
+        # print("t: ", delta_t)
+
+        # computing the new correction rate
+        rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
+        print("rate = ", np.round(rate, 3))
+
+        new_drone_targets_config = np.subtract(self.matrix_drone_config, rate)
+
+        # converting the numpy array into a normal one and cut the result to the third decimal unit
+        new_drone_targets_config = np.round(new_drone_targets_config, 3).tolist()
+
+        # print("new config: ", new_drone_targets_config)
+        return new_drone_targets_config

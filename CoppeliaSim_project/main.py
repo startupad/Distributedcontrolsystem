@@ -1,3 +1,4 @@
+import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 from drone import Drone
 from terrain import Terrain
@@ -22,7 +23,7 @@ def main():
 
     # Definizione delle configurazioni target per ciascun drone in modo dinamico
     for i in range(n_drones):
-        initial_config = [i + 0.5, 0, 0.5, 0, 0, 0, 1]
+        initial_config = [i + 1, 2, 0.5, 0, 0, 0, 1]
         drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
         drones.append(drone)
 
@@ -35,12 +36,15 @@ def main():
     sim.step()
 
     # Ciclo di simulazione
-    for i in range(700):
+    for i in range(350):
         # compute actual time
         t = sim.getSimulationTime()
 
-        a = fc.rendezvous_protocol(t - t_previous, target_configs)
+        dist = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
+        a = fc.formation_control(t - t_previous, dist)
+
         t_previous = t
+
         for k in range(len(drones)):
             # print("a_k: ",a[k])
             drones[k].calculate_new_path(a[k])
@@ -49,7 +53,6 @@ def main():
             drone.next_animation_step()
             # print(f'Drone {drone.id} position: {drone.get_position()}')
             # print("drone", drone.id, "read color: ", drone.read_sensor())
-            # pass
         sim.step()
 
     sim.stopSimulation()
