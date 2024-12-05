@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 
 class FlyController:
@@ -14,7 +13,7 @@ class FlyController:
         self.matrix_laplacian = np.zeros((self.n_drones, self.n_drones))
 
         # define the min-max distance in meters between the drones
-        self.dist_max = 3
+        self.dist_max = 5
 
         # define a matrix to store the inter-drone distances of our formation, by default all dist < dmax
         # --> we get a full connected graph
@@ -34,7 +33,7 @@ class FlyController:
 
         for i in range(self.n_drones):
             for j in range(self.n_drones):
-                # fill only the diagonal elements
+                # fill only the non-diagonal elements
                 if i != j:
                     # checks if the i-th drone is sufficiently near to the j drones
                     if self.matrix_interdrones_distance[i][j] <= self.dist_max:

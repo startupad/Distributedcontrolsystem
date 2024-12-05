@@ -29,7 +29,7 @@ def main():
 
     # build the fly controller
     fc = FlyController(sim, drones)
-    target_configs = [3, 0, 0, 0, 0, 0, 1]
+    target_configs = [3, 2, 1, 0, 0, 0, 1]
 
     # to avoid error during calculations of protocols involving delta t, we need to start with first t value != 0
     # then, I simply need to take the first simulation step before the simulation cycle
