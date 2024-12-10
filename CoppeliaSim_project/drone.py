@@ -1,3 +1,5 @@
+import os
+
 from visual_sensor import VisualSensor
 
 
@@ -15,9 +17,18 @@ class Drone:
         self.path = []
         self.config_to_reach = []
 
-        # Caricamento del modello del drone
-        path_drone = "models/robots/mobile/Quadcopter.ttm"
-        self.handle_drone = self.sim.loadModel(path_drone)
+        # Ottieni la cartella in cui si trova il file Python in esecuzione
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+        # Costruisci il percorso completo del modello
+        path_drone = os.path.join(base_path, 'Quadcopter.ttm')
+
+        # Verifica se il file esiste
+        if not os.path.exists(path_drone):
+            print(f"Errore: il file {path_drone} non esiste.")
+        else:
+            self.handle_drone = self.sim.loadModel(path_drone)
+
         if self.handle_drone == -1:
             print(f"Error loading model for Drone {self.id}: ", self.handle_drone)
         else:
