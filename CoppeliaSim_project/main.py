@@ -36,12 +36,15 @@ def main():
     sim.step()
 
     # Ciclo di simulazione
-    for i in range(350):
+    for i in range(1000):
         # compute actual time
         t = sim.getSimulationTime()
 
         dist = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
-        a = fc.formation_control(t - t_previous, dist)
+        # The frame of CoppeliaSim is refreshed every 50ms --> each step is 0.05s long that is to much, we need to reduce it
+        step = (t - t_previous) / 10
+        tolerance = 0.01
+        a = fc.formation_control(step, dist, tolerance)
 
         t_previous = t
 
