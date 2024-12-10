@@ -15,9 +15,12 @@ class FlyController:
         # define the min-max distance in meters between the drones
         self.dist_max = 5
 
-        # define a matrix to store the inter-drone distances of our formation, by default all dist < dmax
+        # define a matrix to store the desired inter-drone distances of our formation, by default all dist < dmax
         # --> we get a full connected graph
         self.matrix_interdrones_distance = np.zeros((self.n_drones, self.n_drones))
+
+        # define a matrix to store the actual inter-drones distances (calculated by the norm of difference of rows vectors)
+        self.matrix_norm = np.zeros((self.n_drones, self.n_drones))
 
         # define a matrix where to store the actual drone positions info
         self.matrix_drone_config = np.zeros((self.n_drones, self.n_drones))
@@ -37,7 +40,7 @@ class FlyController:
                 if i != j:
                     # checks if the i-th drone is sufficiently near to the j drones
                     if self.matrix_interdrones_distance[i][j] <= self.dist_max:
-                        norm = np.zeros((3, 3))
+                        # norm = np.zeros((3, 3))
                         self.matrix_drone_config = np.array(self.compute_drone_actual_config_matrix())
                         # check what type of protocol we are using and prepare the respective adj matrix
                         if type_of_algorthm == 'c':
@@ -47,10 +50,11 @@ class FlyController:
                             pass
                         elif type_of_algorthm == 'f':
                             # for the formation, we want a matrix where each element integrate the Connectivity algorithm
-                            norm[i, j] = np.linalg.norm(
+                            self.matrix_norm[i, j] = np.linalg.norm(
                                 np.subtract(self.matrix_drone_config[i], self.matrix_drone_config[j]))
-                            self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / norm[i, j]) / pow(
-                                (self.dist_max - norm[i, j]), 3)
+                            self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / self.matrix_norm[
+                                i, j]) / pow(
+                                (self.dist_max - self.matrix_norm[i, j]), 3)
 
         # define delta as matrix where the diagonal elements are = to the degree of node i
         # degree = number of connections of the node = sum of the elements in each row of the adjacency matrix
@@ -118,25 +122,35 @@ class FlyController:
 
         return new_drone_targets_config
 
-    def formation_control(self, delta_t, interdrones_distances):
-
-        self.matrix_interdrones_distance = interdrones_distances
-        self.update_matrices('f')
+    def formation_control(self, delta_t, interdrones_distances, tolerance):
+        # computing matrix drones config
         self.matrix_drone_config = self.compute_drone_actual_config_matrix()
+        # updating the desired inter-drones distances
+        self.matrix_interdrones_distance = interdrones_distances
+        # updating the fundamental matrices
+        self.update_matrices('f')
 
-        # print("dist: ", self.matrix_interdrones_distance)
-        print("drones: ", np.round(self.matrix_drone_config, 3))
-        # print("lap: ", self.matrix_laplacian)
-        # print("t: ", delta_t)
+        # Check for convergence
+        diff = np.linalg.norm(self.matrix_interdrones_distance - self.matrix_norm)
+        if diff < tolerance:
+            print("Convergence has been already reached")
+            print("actual inter-drones distances = norm matrix: ", self.matrix_norm)
+            return self.matrix_drone_config
+        else:
+            # print("dist: ", self.matrix_inter-drones_distance)
+            # print("drones: ", np.round(self.matrix_drone_config, 3))
+            # print("lap: ", self.matrix_laplacian)
+            # print("t: ", delta_t)
 
-        # computing the new correction rate exploiting the consensus protocol theory
-        rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
-        print("rate = ", np.round(rate, 3))
+            # computing the new correction rate exploiting the consensus protocol theory
+            rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
+            # print("rate = ", np.round(rate, 3))
 
-        new_drone_targets_config = np.subtract(self.matrix_drone_config, rate)
+            new_drone_targets_config = np.subtract(self.matrix_drone_config, rate)
 
-        # converting the numpy array into a normal one and cut the result to the third decimal unit
-        new_drone_targets_config = np.round(new_drone_targets_config, 3).tolist()
+            # converting the numpy array into a normal one and cut the result to the third decimal unit
+            new_drone_targets_config = np.round(new_drone_targets_config, 5).tolist()
 
-        # print("new config: ", new_drone_targets_config)
-        return new_drone_targets_config
+            # print("new config: ", new_drone_targets_config)
+            # print("norm matrix: ", self.matrix_norm)
+            return new_drone_targets_config
