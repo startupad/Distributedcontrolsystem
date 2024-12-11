@@ -1,5 +1,8 @@
 import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
+from dask.array import apply_gufunc
+
+from CoppeliaSim_project.tessellation import apply_tessellation
 from drone import Drone
 from terrain import Terrain
 from fly_controller import FlyController
@@ -16,6 +19,7 @@ def main():
 
     # Creazione del terreno
     terrain = Terrain(sim)
+    apply_tessellation(terrain)
 
     # Configurazione iniziale e creazione di più droni in modo dinamico
     n_drones = get_n_drones()

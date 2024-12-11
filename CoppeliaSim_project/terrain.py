@@ -19,6 +19,9 @@ class Terrain:
         self.texture_id = 0
         self.init_terrain(xlim=(-0.1, 1.1), ylim=(-0.1, 1.1), resolution=100)
 
+    def get_dimensions(self):
+        return self.width, self.length
+
     def init_terrain(self, xlim: tuple, ylim: tuple, resolution):
         """
                 Plots a 2D Gaussian Mixture Model (GMM) distribution over a specified range.
