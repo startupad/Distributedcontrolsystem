@@ -117,6 +117,8 @@ class Drone:
         """Check if the drone has reached its target position."""
         current_pos = self.get_position()
         target_pos = self.config_to_reach[0:3]
-        tolerance = 1  # Define a tolerance for reaching the target
+        # Check if the drone is close enough to the target position
+        tolerance = 0.75  # Define a tolerance for reaching the target
+
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
         return distance < tolerance

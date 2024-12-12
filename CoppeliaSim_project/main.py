@@ -44,20 +44,33 @@ def initialize_drones(sim, n_drones):
     return drones
 
 def run_simulation(sim, s_path, drones, fc):
-    """Run the simulation loop."""
+    prev_time = 0
+    # Simulation loop
     for center in s_path:
+        # Set the new target for the drone leader
         drones[0].calculate_new_path(center)
 
-        previousSimulationTime = 0
-        step = (sim.getSimulationTime() - previousSimulationTime) / 10
-        previousSimulationTime = sim.getSimulationTime()
+        # Set up formation control parameters
+        step = (sim.getSimulationTime() - prev_time) / 10
+        prev_time = sim.getSimulationTime()
+        desired_dist_matrix = np.array([[0, 1.1, 1.1], [0.75, 0, 1.1], [0.75, 1, 0]])
+        tolerance = 0.1
 
-        desired_dist_matrix = np.array([[0, 0.5, 1], [1, 0, 0.5], [1, 0.5, 0]])
-        out = fc.formation_control(step, desired_dist_matrix, TOLERANCE)
+        # Compute formation control
+        out = fc.formation_control(step, desired_dist_matrix, tolerance)
 
+        # Setup drones parameters
+        # using a proporitonal control to decide the slaves speed
+        # for i in range(len(drones)):
+        #     drones[i].velocity = 1
+        #     drones[i].velocity = drones[i].velocity * (1 + pow(pow( fc.matrix_norm[0, i].tolist(), 2), 0.5))
+        #     print(f"drone {i} speed = ", drones[i].velocity)
+
+        # set new target for the slave drones
         drones[1].calculate_new_path(out[1])
         drones[2].calculate_new_path(out[2])
-
+        
+        
         all_drones_reached = False
         while not all_drones_reached:
             all_drones_reached = True
