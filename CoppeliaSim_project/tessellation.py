@@ -37,7 +37,7 @@ class Tessellation:
         self.plot_centers(ax)
         self.set_plot_limits(ax)
         plt.gca().set_aspect('equal', adjustable='box')
-        # plt.show()
+        plt.show()
 
     def plot_squares(self, ax):
         """Plot the grid squares."""
@@ -63,9 +63,12 @@ class Tessellation:
 
     def get_grid_centers(self):
         """Calculate and return the center points of the grid squares."""
+        self.centers = []  # Clear the list of centers
         for square in self.squares:
             center = self.calculate_center(square)
             self.centers.append(center)
+
+        print(len(self.centers))
         return self.centers
 
     def calculate_center(self, square):
