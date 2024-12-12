@@ -10,7 +10,7 @@ class Drone:
         # Setup iniziale
         self.sim = sim
         self.id = id
-        self.velocity = 0.5  # Velocità in m/s
+        self.velocity = 1  # Velocità in m/s
         self.t = 0
         self.previousSimulationTime = 0
         self.posAlongPath = 0
@@ -55,7 +55,7 @@ class Drone:
 
     def next_animation_step(self):
         self.t = self.sim.getSimulationTime()
-        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
+        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime) / 10
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
 
         if config:
