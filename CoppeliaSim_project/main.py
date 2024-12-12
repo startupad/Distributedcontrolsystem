@@ -58,8 +58,11 @@ def main():
         drones[0].calculate_new_path(center)
 
         # applying formation control
-        step = 5
-        desired_dist_matrix = np.array([[0, 1.5, 1.5], [1.5, 0, 1.5], [1.5, 1.5, 0]])
+        previousSimulationTime = 0
+        step = (sim.getSimulationTime() - previousSimulationTime) / 10
+        previousSimulationTime = sim.getSimulationTime()
+
+        desired_dist_matrix = np.array([[0, 0.5, 1], [1, 0, 0.5], [1, 0.5, 0]])
         tolerance = 0.1
 
         out = fc.formation_control(step, desired_dist_matrix, tolerance)

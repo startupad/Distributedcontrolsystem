@@ -51,9 +51,13 @@ class FlyController:
                         elif type_of_algorthm == 'f':
                             # for the formation, we want a matrix where each element integrate the Connectivity algorithm
                             self.matrix_norm[i, j] = np.linalg.norm(
-                                np.subtract(self.matrix_drone_config[i], self.matrix_drone_config[j]))
-                            self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / self.matrix_norm[
-                                i, j]) / pow((self.dist_max - self.matrix_norm[i, j]), 3)
+                                np.subtract(self.matrix_drone_config[i], self.matrix_drone_config[j]), ord=2)
+                            self.matrix_adj[i, j] = np.subtract(self.matrix_norm[i, j],
+                                                                self.matrix_interdrones_distance[i, j]) / \
+                                                    self.matrix_norm[i, j]
+
+                            # self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / self.matrix_norm[
+                            #     i, j]) / pow((self.dist_max - self.matrix_norm[i, j]), 3)
 
         # define delta as matrix where the diagonal elements are = to the degree of node i
         # degree = number of connections of the node = sum of the elements in each row of the adjacency matrix
@@ -139,7 +143,7 @@ class FlyController:
         else:
             # print("dist: ", self.matrix_interdrones_distance)
             # print("drones: ", np.round(self.matrix_drone_config, 3))
-            # print("lap: ", self.matrix_laplacian)
+            print("lap: ", self.matrix_laplacian)
             # print("t: ", delta_t)
 
             # computing the new correction rate exploiting the consensus protocol theory

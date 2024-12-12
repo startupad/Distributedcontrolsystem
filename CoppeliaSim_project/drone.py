@@ -6,7 +6,7 @@ class Drone:
         # Setup iniziale
         self.sim = sim
         self.id = id
-        self.velocity = 1  # Velocità in m/s
+        self.velocity = 5  # Velocità in m/s
         self.t = 0
         self.previousSimulationTime = 0
         self.posAlongPath = 0
@@ -43,7 +43,7 @@ class Drone:
     def next_animation_step(self):
         self.t = self.sim.getSimulationTime()
         # self.velocity = self.path_total_length*5
-        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
+        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime) / 10
         # print("path: ", self.path)
         # print("pos_along: ", self.posAlongPath)
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
@@ -79,6 +79,6 @@ class Drone:
         target_pos = self.config_to_reach[0:3]
 
         # Check if the drone is close enough to the target position
-        tolerance = 2.5  # Define a tolerance for reaching the target
+        tolerance = 1  # Define a tolerance for reaching the target
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
         return distance < tolerance
