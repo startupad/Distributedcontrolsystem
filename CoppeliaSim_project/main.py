@@ -22,9 +22,19 @@ def main():
     drones = []
 
     # Definizione delle configurazioni target per ciascun drone in modo dinamico
+    # for i in range(n_drones):
+    #     initial_config = [i + 1, 2, 0.5, 0, 0, 0, 1]
+    #     drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
+    #     drones.append(drone)
+
+    matrix_abc_values = np.array([
+        [1.0, 2.0, 0.487],
+        [2.0, 2.0, 0.487],
+        [3.0, 2.0, 0.487]
+    ])
+
     for i in range(n_drones):
-        initial_config = [i + 1, 2, 0.5, 0, 0, 0, 1]
-        drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
+        drone = Drone(sim, id=str(i + 1), starting_config=matrix_abc_values[i].tolist())
         drones.append(drone)
 
     # build the fly controller
@@ -36,17 +46,18 @@ def main():
     sim.step()
 
     # Ciclo di simulazione
-    for i in range(1000):
+    for i in range(10000):
         # compute actual time
-        t = sim.getSimulationTime()
+        # t = sim.getSimulationTime()
 
         dist = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
         # The frame of CoppeliaSim is refreshed every 50ms --> each step is 0.05s long that is to much, we need to reduce it
-        step = (t - t_previous) / 10
-        tolerance = 0.01
+        # step = (t - t_previous)/1.7
+        step = 5
+        tolerance = 0.25
         a = fc.formation_control(step, dist, tolerance)
 
-        t_previous = t
+        # t_previous = t
 
         for k in range(len(drones)):
             # print("a_k: ",a[k])
@@ -56,6 +67,7 @@ def main():
             drone.next_animation_step()
             # print(f'Drone {drone.id} position: {drone.get_position()}')
             # print("drone", drone.id, "read color: ", drone.read_sensor())
+
         sim.step()
 
     sim.stopSimulation()

@@ -42,7 +42,7 @@ class Drone:
 
     def next_animation_step(self):
         self.t = self.sim.getSimulationTime()
-        # self.velocity = self.path_total_length*0.5
+        # self.velocity = self.path_total_length*5
         self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
         # print("path: ", self.path)
         # print("pos_along: ", self.posAlongPath)

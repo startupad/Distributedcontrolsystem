@@ -13,7 +13,7 @@ class FlyController:
         self.matrix_laplacian = np.zeros((self.n_drones, self.n_drones))
 
         # define the min-max distance in meters between the drones
-        self.dist_max = 5
+        self.dist_max = 10
 
         # define a matrix to store the desired inter-drone distances of our formation, by default all dist < dmax
         # --> we get a full connected graph
@@ -53,8 +53,7 @@ class FlyController:
                             self.matrix_norm[i, j] = np.linalg.norm(
                                 np.subtract(self.matrix_drone_config[i], self.matrix_drone_config[j]))
                             self.matrix_adj[i, j] = (1 - self.matrix_interdrones_distance[i, j] / self.matrix_norm[
-                                i, j]) / pow(
-                                (self.dist_max - self.matrix_norm[i, j]), 3)
+                                i, j]) / pow((self.dist_max - self.matrix_norm[i, j]), 3)
 
         # define delta as matrix where the diagonal elements are = to the degree of node i
         # degree = number of connections of the node = sum of the elements in each row of the adjacency matrix
@@ -135,9 +134,10 @@ class FlyController:
         if diff < tolerance:
             print("Convergence has been already reached")
             print("actual inter-drones distances = norm matrix: ", self.matrix_norm)
+            self.matrix_drone_config = np.round(self.matrix_drone_config, 5).tolist()
             return self.matrix_drone_config
         else:
-            # print("dist: ", self.matrix_inter-drones_distance)
+            # print("dist: ", self.matrix_interdrones_distance)
             # print("drones: ", np.round(self.matrix_drone_config, 3))
             # print("lap: ", self.matrix_laplacian)
             # print("t: ", delta_t)
@@ -152,5 +152,5 @@ class FlyController:
             new_drone_targets_config = np.round(new_drone_targets_config, 5).tolist()
 
             # print("new config: ", new_drone_targets_config)
-            # print("norm matrix: ", self.matrix_norm)
+            print("norm matrix: ", self.matrix_norm)
             return new_drone_targets_config
