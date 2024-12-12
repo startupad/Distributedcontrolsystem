@@ -2,7 +2,7 @@ import os
 import numpy as np
 import logging
 
-from CoppeliaSim_project.visual_sensor import VisualSensor
+from visual_sensor import VisualSensor
 
 
 class Drone:

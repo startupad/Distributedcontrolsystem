@@ -19,6 +19,17 @@ def save_matrix(matrix):
         except (FileNotFoundError, json.JSONDecodeError):
             data = []
         print(" [x] Matrice salvata nel file")
+        
+        
+def save_matrix_processed(matrix):
+    with file_lock:
+        try:
+            # Legge le matrici esistenti dal file
+            with open(FILE_PATH_PROCESSED, 'w') as f:
+                json.dump(matrix, f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = []
+        print(" [x] Matrice salvata nel file")
 
 @app.route('/')
 def index():
