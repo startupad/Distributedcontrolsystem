@@ -4,15 +4,18 @@ import logging
 
 from CoppeliaSim_project.visual_sensor import VisualSensor
 
+
 class Drone:
-    def __init__(self, sim, drone_id, starting_config):
-        """Initialize the drone with its simulation environment, ID, and starting configuration."""
+    def __init__(self, sim, drone_id, starting_config, wait_time=3.0):
+        """Initialize the drone with its simulation environment, ID, starting configuration, and wait time."""
         self.sim = sim
         self.id = drone_id
         self.starting_config = starting_config
         self.velocity = 0.5
         self.posAlongPath = 0
         self.previousSimulationTime = 0
+        self.wait_time = wait_time
+        self.wait_start_time = None
 
         # Load the drone model
         self.handle_drone = self.load_drone_model()
@@ -59,6 +62,12 @@ class Drone:
     def next_animation_step(self):
         """Perform the next animation step for the drone."""
         self.t = self.sim.getSimulationTime()
+        if self.wait_start_time is not None:
+            if self.t - self.wait_start_time < self.wait_time:
+                return  # Wait until the wait time has passed
+            else:
+                self.wait_start_time = None  # Reset wait start time
+
         self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
 
@@ -75,6 +84,9 @@ class Drone:
             logging.error("Config is None")
 
         self.previousSimulationTime = self.t
+
+        if self.has_reached_target():
+            self.wait_start_time = self.t  # Start the wait time
 
     def calculate_new_path(self, new_config):
         """Calculate a new path for the drone."""
