@@ -73,3 +73,13 @@ class Drone:
         pos = self.sim.getObjectPosition(self.target_handle, self.sim.handle_world)
         orientation = self.sim.getObjectQuaternion(self.target_handle, self.sim.handle_world)
         return pos, orientation
+
+    def has_reached_target(self):
+        # Get the current position of the drone
+        current_pos = self.get_position()
+        target_pos = self.config_to_reach[0:3]
+
+        # Check if the drone is close enough to the target position
+        tolerance = 0.1  # Define a tolerance for reaching the target
+        distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
+        return distance < tolerance
