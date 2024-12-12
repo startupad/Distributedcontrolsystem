@@ -8,6 +8,16 @@ from terrain import Terrain
 from fly_controller import FlyController
 
 
+def create_s_path(centers, width):
+    s_path = []
+    for i in range(0, len(centers), width):
+        row = centers[i:i + width]
+        if (i // width) % 2 == 1:
+            row.reverse()
+        s_path.extend(row)
+    return s_path
+
+
 def main():
     # Initialize the client for communication with CoppeliaSim
     client = RemoteAPIClient()
@@ -21,6 +31,10 @@ def main():
     # Create the terrain and apply tessellation
     terrain = Terrain(sim)
     tessellation = apply_tessellation(terrain)
+
+    # Create the S-shaped path
+    width = terrain.get_dimensions()[0]
+    s_path = create_s_path(tessellation.centers, width)
 
     # Initial configuration and dynamic creation of multiple drones
     n_drones = get_n_drones()
@@ -39,7 +53,7 @@ def main():
     sim.step()
 
     # Simulation loop
-    for center in tessellation.centers:
+    for center in s_path:
         # Set the new target for each drone
         for drone in drones:
             drone.calculate_new_path(center)
@@ -59,7 +73,6 @@ def main():
     # Stop the simulation
     sim.stopSimulation()
     print("Simulation ended")
-
 
 # Function to get the number of drones from the interface
 def get_n_drones():
