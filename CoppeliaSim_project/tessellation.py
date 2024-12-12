@@ -8,6 +8,7 @@ class Tessellation:
         self.terrain = terrain
         self.grid_size = grid_size
         self.squares = []
+        self.centers = []
 
     def apply_grid(self):
         # Get the terrain dimensions (assuming it has get_dimensions method)
@@ -28,29 +29,28 @@ class Tessellation:
             ax.add_patch(rect)
 
         # Plot the center points
-        centers = self.get_grid_centers()
-        for center in centers:
+        self.get_grid_centers()
+        for center in self.centers:
             ax.plot(center[0], center[1], 'bo')  # 'bo' means blue color, circle marker
 
         plt.xlim(0, self.terrain.get_dimensions()[0])
         plt.ylim(0, self.terrain.get_dimensions()[1])
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.show()
+        # plt.show()
 
     def get_grid_squares(self):
         return self.squares
 
     def get_grid_centers(self):
-        centers = []
+
         for square in self.squares:
             x_center = (square[0][0] + square[2][0]) / 2
             y_center = (square[0][1] + square[2][1]) / 2
-            centers.append((x_center, y_center))
-        return centers
+            self.centers.append([x_center, y_center, 1, 0, 0, 0, 1])
 
 
 def apply_tessellation(terrain):
-    grid_size = 1 # Define the size of each square
+    grid_size = 1  # Define the size of each square
     tessellation = Tessellation(terrain, grid_size)
 
     # Apply grid tessellation
@@ -64,5 +64,7 @@ def apply_tessellation(terrain):
     print("Grid squares:", squares)
 
     # Get and print the grid centers
-    centers = tessellation.get_grid_centers()
-    print("Grid centers:", centers)
+    tessellation.get_grid_centers()
+    print("Grid centers:", tessellation.centers)
+
+    return tessellation

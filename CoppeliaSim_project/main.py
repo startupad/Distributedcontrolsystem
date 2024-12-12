@@ -9,64 +9,59 @@ from fly_controller import FlyController
 
 
 def main():
+    # Initialize the client for communication with CoppeliaSim
     client = RemoteAPIClient()
     sim = client.require('sim')
     sim.setStepping(True)
     sim.startSimulation()
 
-    # define variable to remember previous time
+    # Variable to remember the previous time
     t_previous = 0
 
-    # Creazione del terreno
+    # Create the terrain and apply tessellation
     terrain = Terrain(sim)
-    apply_tessellation(terrain)
+    tessellation = apply_tessellation(terrain)
 
-    # Configurazione iniziale e creazione di più droni in modo dinamico
+    # Initial configuration and dynamic creation of multiple drones
     n_drones = get_n_drones()
     drones = []
 
-    # Definizione delle configurazioni target per ciascun drone in modo dinamico
+    # Define initial configurations for each drone
     for i in range(n_drones):
         initial_config = [i + 1, 2, 0.5, 0, 0, 0, 1]
         drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
         drones.append(drone)
 
-    # build the fly controller
+    # Create the flight controller
     fc = FlyController(sim, drones)
-    target_configs = [3, 2, 1, 0, 0, 0, 1]
 
-    # to avoid error during calculations of protocols involving delta t, we need to start with first t value != 0
-    # then, I simply need to take the first simulation step before the simulation cycle
+    # Perform the first simulation step to avoid errors in calculations involving delta t
     sim.step()
 
-    # Ciclo di simulazione
-    for i in range(1000):
-        # compute actual time
-        t = sim.getSimulationTime()
-
-        dist = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
-        # The frame of CoppeliaSim is refreshed every 50ms --> each step is 0.05s long that is to much, we need to reduce it
-        step = (t - t_previous) / 10
-        tolerance = 0.01
-        a = fc.formation_control(step, dist, tolerance)
-
-        t_previous = t
-
-        for k in range(len(drones)):
-            # print("a_k: ",a[k])
-            drones[k].calculate_new_path(a[k])
-
+    # Simulation loop
+    for center in tessellation.centers:
+        # Set the new target for each drone
         for drone in drones:
-            drone.next_animation_step()
-            # print(f'Drone {drone.id} position: {drone.get_position()}')
-            # print("drone", drone.id, "read color: ", drone.read_sensor())
-        sim.step()
+            drone.calculate_new_path(center)
 
+        # Wait until all drones reach their target
+        all_drones_reached = False
+        while not all_drones_reached:
+            all_drones_reached = True
+            for drone in drones:
+                drone.next_animation_step()
+                if not drone.has_reached_target():
+                    all_drones_reached = False
+
+            # Perform a simulation step
+            sim.step()
+
+    # Stop the simulation
     sim.stopSimulation()
     print("Simulation ended")
 
 
-# definition of the function that retrieves the number of drones from the interface
+# Function to get the number of drones from the interface
 def get_n_drones():
     return 3
 

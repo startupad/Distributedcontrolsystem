@@ -69,7 +69,7 @@ class Terrain:
         plt.savefig(self.texture_file_name, format='png', bbox_inches='tight', pad_inches=0)
 
         # Show the plot
-        plt.show()
+        # plt.show()
 
         # Create a primitive texture shape (small plane)
         # Ensure absolute path
