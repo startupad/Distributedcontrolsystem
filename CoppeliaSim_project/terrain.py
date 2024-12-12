@@ -82,11 +82,15 @@ class Terrain:
         self.terrain_handle = self.sim.createPrimitiveShape(self.sim.primitiveshape_plane, [self.width, self.length, 1],
                                                             0)
 
+        # moving the terrain in the correct position
+        self.sim.setObjectPosition(self.terrain_handle, [self.width / 2, self.length / 2, 0], self.sim.handle_world)
+
         # Cover the terrain with the texture
         self.sim.setShapeTexture(self.terrain_handle, self.texture_id, self.sim.texturemap_plane, 2,
                                  [self.width, self.length], None, None)
 
-        self.sim.setObjectPosition(shape, -1, [50, 50, 50])
+        # moving the texture away from the scene
+        self.sim.setObjectPosition(shape, [50, 50, 50], self.sim.handle_world)
 
     def gauss_pdf_mixture(self, x, y, means, sigmas, weights):
         """

@@ -1,4 +1,7 @@
+import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
+from dask.array import apply_gufunc
+
 from CoppeliaSim_project.tessellation import apply_tessellation
 from drone import Drone
 from terrain import Terrain
@@ -52,8 +55,17 @@ def main():
     # Simulation loop
     for center in s_path:
         # Set the new target for each drone
-        for drone in drones:
-            drone.calculate_new_path(center)
+        drones[0].calculate_new_path(center)
+
+        # applying formation control
+        step = 5
+        desired_dist_matrix = np.array([[0, 1.5, 1.5], [1.5, 0, 1.5], [1.5, 1.5, 0]])
+        tolerance = 0.1
+
+        out = fc.formation_control(step, desired_dist_matrix, tolerance)
+
+        drones[1].calculate_new_path(out[1])
+        drones[2].calculate_new_path(out[2])
 
         # Wait until all drones reach their target
         all_drones_reached = False

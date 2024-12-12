@@ -1,16 +1,12 @@
-import os
-
-import numpy as np
-
 from visual_sensor import VisualSensor
-
+import numpy as np
 
 class Drone:
     def __init__(self, sim, id, starting_config):
         # Setup iniziale
         self.sim = sim
         self.id = id
-        self.velocity = 0.5  # Velocità in m/s
+        self.velocity = 1  # Velocità in m/s
         self.t = 0
         self.previousSimulationTime = 0
         self.posAlongPath = 0
@@ -19,18 +15,9 @@ class Drone:
         self.path = []
         self.config_to_reach = []
 
-        # Get the directory where the running Python file is located
-        base_path = os.path.dirname(os.path.abspath(__file__))
-
-        # Construct the full path to the model
-        path_drone = os.path.join(base_path, 'Quadcopter.ttm')
-
-        # Check if the file exists
-        if not os.path.exists(path_drone):
-            print(f"Error: the file {path_drone} does not exist.")
-        else:
-            self.handle_drone = self.sim.loadModel(path_drone)
-
+        # Caricamento del modello del drone
+        path_drone = "models/robots/mobile/Quadcopter.ttm"
+        self.handle_drone = self.sim.loadModel(path_drone)
         if self.handle_drone == -1:
             print(f"Error loading model for Drone {self.id}: ", self.handle_drone)
         else:
@@ -92,6 +79,6 @@ class Drone:
         target_pos = self.config_to_reach[0:3]
 
         # Check if the drone is close enough to the target position
-        tolerance = 0.1  # Define a tolerance for reaching the target
+        tolerance = 2.5  # Define a tolerance for reaching the target
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
         return distance < tolerance
