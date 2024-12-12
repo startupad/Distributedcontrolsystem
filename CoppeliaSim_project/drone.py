@@ -69,6 +69,7 @@ class Drone:
                 self.wait_start_time = None  # Reset wait start time
 
         self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
+
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
 
         if config:
