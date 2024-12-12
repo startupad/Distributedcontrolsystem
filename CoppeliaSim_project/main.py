@@ -9,6 +9,7 @@ from fly_controller import FlyController
 
 
 def create_s_path(centers, width):
+    # Create an S-shaped path from the grid centers
     s_path = []
     for i in range(0, len(centers), width):
         row = centers[i:i + width]
@@ -57,7 +58,7 @@ def main():
         # Set the new target for each drone
         drones[0].calculate_new_path(center)
 
-        # applying formation control
+        # Applying formation control
         previousSimulationTime = 0
         step = (sim.getSimulationTime() - previousSimulationTime) / 10
         previousSimulationTime = sim.getSimulationTime()

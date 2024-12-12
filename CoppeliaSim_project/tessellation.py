@@ -16,6 +16,7 @@ class Tessellation:
         x_coords = np.arange(0, width, self.grid_size)
         y_coords = np.arange(0, height, self.grid_size)
 
+        # Create grid squares
         for x in x_coords:
             for y in y_coords:
                 square = [(x, y), (x + self.grid_size, y), (x + self.grid_size, y + self.grid_size),
@@ -23,6 +24,7 @@ class Tessellation:
                 self.squares.append(square)
 
     def plot_grid(self):
+        # Plot the grid squares
         fig, ax = plt.subplots()
         for square in self.squares:
             rect = patches.Polygon(square, closed=True, edgecolor='r', facecolor='none')
@@ -39,10 +41,11 @@ class Tessellation:
         # plt.show()
 
     def get_grid_squares(self):
+        # Return the grid squares
         return self.squares
 
     def get_grid_centers(self):
-
+        # Calculate the center points of the grid squares
         for square in self.squares:
             x_center = ((square[0][0] + square[2][0]) / 2)
             y_center = (square[0][1] + square[2][1]) / 2
