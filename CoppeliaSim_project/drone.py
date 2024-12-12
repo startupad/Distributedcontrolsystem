@@ -4,15 +4,11 @@ import logging
 
 from CoppeliaSim_project.visual_sensor import VisualSensor
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-
 class Drone:
-    def __init__(self, sim, id, starting_config):
+    def __init__(self, sim, drone_id, starting_config):
         """Initialize the drone with its simulation environment, ID, and starting configuration."""
         self.sim = sim
-        self.id = id
+        self.id = drone_id
         self.starting_config = starting_config
         self.velocity = 0.5
         self.posAlongPath = 0

@@ -7,6 +7,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 class FlyController:
     def __init__(self, sim, drones_list):
+        self.matrix_norm = None
+        self.matrix_interdrones_distance = None
+        self.matrix_laplacian = None
+        self.matrix_adj = None
+        self.matrix_delta = None
+        self.matrix_drone_config = None
         self.sim = sim
         self.drones_list = drones_list
         self.n_drones = len(drones_list)
@@ -77,7 +83,7 @@ class FlyController:
         z_dot = np.dot(self.matrix_laplacian, var_to_sync)
         return np.round(z_dot, 3)
 
-    def rendezvous_protocol(self, delta_t, target_config):
+    def rendezvous_protocol(self, delta_t):
         """Perform the rendezvous protocol."""
         matrix_drone_config = self.compute_drone_actual_config_matrix()
         self.update_matrices('r')
