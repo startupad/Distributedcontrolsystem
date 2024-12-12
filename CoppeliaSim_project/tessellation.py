@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from lief import type_error
 
 
 class Tessellation:
@@ -44,8 +45,8 @@ class Tessellation:
     def get_grid_centers(self):
 
         for square in self.squares:
-            x_center = (square[0][0] + square[2][0]) / 2
-            y_center = (square[0][1] + square[2][1]) / 2
+            x_center = ((square[0][0] + square[2][0]) / 2) - self.terrain.width / 2
+            y_center = (square[0][1] + square[2][1]) / 2 - self.terrain.length / 2
             self.centers.append([x_center, y_center, 1, 0, 0, 0, 1])
 
 
