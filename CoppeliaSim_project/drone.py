@@ -9,9 +9,11 @@ class Drone:
     def __init__(self, sim, drone_id, starting_config, wait_time=3.0):
         """Initialize the drone with its simulation environment, ID, starting configuration, and wait time."""
         self.sim = sim
+
         self.id = drone_id
         self.starting_config = starting_config
         self.velocity = 0.5
+
         self.posAlongPath = 0
         self.previousSimulationTime = 0
         self.wait_time = wait_time
@@ -103,7 +105,6 @@ class Drone:
         self.sim.setObjectPosition(self.target_handle, -1, position)
 
     def read_sensor(self):
-        """Read data from the visual sensor."""
         return self.sensor.read_sensor()
 
     def get_drone_config_info(self):
