@@ -63,6 +63,7 @@ class Tessellation:
 
     def get_grid_centers(self):
         """Calculate and return the center points of the grid squares."""
+        self.centers = []  # Clear the list of centers
         for square in self.squares:
             center = self.calculate_center(square)
             self.centers.append(center)
