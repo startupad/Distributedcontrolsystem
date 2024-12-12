@@ -12,8 +12,8 @@ class Terrain:
         self.texture_file_name = "texture.png"
         self.last_color_change_time = 0
         self.colors = ["#2e7411", "#a7ee89", "#c1951c"]  # verde scuro, verde chiaro, marroncino
-        self.width = 10
-        self.length = 10
+        self.width = 6
+        self.length = 6
         self.height = 0.1
         self.terrain_handle = 0
         self.texture_id = 0
