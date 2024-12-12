@@ -6,7 +6,7 @@ import time
 app = Flask(__name__)
 
 # Percorso del file dove verranno salvate le matrici
-FILE_PATH = os.path.join('data', 'matrices.json')
+FILE_PATH = 'data/matrices.json'
 FILE_PATH_PROCESSED = 'data/processed_matrices.json'
 file_lock = threading.Lock()
 
