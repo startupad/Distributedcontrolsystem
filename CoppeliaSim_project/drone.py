@@ -98,6 +98,6 @@ class Drone:
         target_pos = self.config_to_reach[0:3]
 
         # Check if the drone is close enough to the target position
-        tolerance = 1  # Define a tolerance for reaching the target
+        tolerance = 0.75  # Define a tolerance for reaching the target
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
         return distance < tolerance
