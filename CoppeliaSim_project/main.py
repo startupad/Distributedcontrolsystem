@@ -7,7 +7,15 @@ from drone import Drone
 from terrain import Terrain
 from fly_controller import FlyController
 from config import TOLERANCE, GRID_SIZE, N_DRONES
+import sys
+import os
 
+# Aggiungi il percorso della cartella 'web-app' a sys.path
+web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web-app'))
+sys.path.append(web_app_path)
+
+# Ora puoi importare 'app' dalla cartella 'web-app'
+from app import save_matrix_processed
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -81,6 +89,7 @@ def run_simulation(sim, s_path, drones, fc):
             sim.step()
     
     print('GRIGLIA FINALE',print_grid())
+    save_matrix_processed(grid)
 
 
 def main():
@@ -153,9 +162,7 @@ def define_grid(s_path, drones):
 # Ora la griglia globale è accessibile anche all'esterno della funzione:
 def print_grid():
     global grid
-    print("Griglia finale:")
-    for row in grid:
-        print(row)
+    return grid
 
 if __name__ == "__main__":
     main()
