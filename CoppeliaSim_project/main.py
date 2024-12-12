@@ -7,7 +7,15 @@ from drone import Drone
 from terrain import Terrain
 from fly_controller import FlyController
 from config import TOLERANCE, GRID_SIZE, N_DRONES
+import sys
+import os
 
+# Aggiungi il percorso della cartella 'web-app' a sys.path
+web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web-app'))
+sys.path.append(web_app_path)
+
+# Ora puoi importare 'app' dalla cartella 'web-app'
+from app import save_matrix_processed
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -48,28 +56,28 @@ def run_simulation(sim, s_path, drones, fc):
     # Simulation loop
     for center in s_path:
         # Set the new target for the drone leader
-        drones[0].calculate_new_path(center)
 
         # Set up formation control parameters
-        step = (sim.getSimulationTime() - prev_time) / 10
+        # il fattore di divisione deve essere lo stesso di drone.animationstep()
+        step = (sim.getSimulationTime() - prev_time) / 7
         prev_time = sim.getSimulationTime()
         desired_dist_matrix = np.array([[0, 1.1, 1.1], [0.75, 0, 1.1], [0.75, 1, 0]])
-        tolerance = 0.1
+        tolerance = 0.25
 
         # Compute formation control
         out = fc.formation_control(step, desired_dist_matrix, tolerance)
 
         # Setup drones parameters
         # using a proporitonal control to decide the slaves speed
-        # for i in range(len(drones)):
-        #     drones[i].velocity = 1
-        #     drones[i].velocity = drones[i].velocity * (1 + pow(pow( fc.matrix_norm[0, i].tolist(), 2), 0.5))
-        #     print(f"drone {i} speed = ", drones[i].velocity)
+        for i in range(len(drones)):
+            drones[i].velocity = 2
+            drones[i].velocity = drones[i].velocity * (1 + pow(pow(fc.matrix_norm[0, i].tolist(), 2), 0.5))
+            print(f"drone {i} speed = ", drones[i].velocity)
 
         # set new target for the slave drones
+        drones[0].calculate_new_path(center)
         drones[1].calculate_new_path(out[1])
         drones[2].calculate_new_path(out[2])
-        
         
         all_drones_reached = False
         while not all_drones_reached:
@@ -81,6 +89,7 @@ def run_simulation(sim, s_path, drones, fc):
             sim.step()
     
     print('GRIGLIA FINALE',print_grid())
+    save_matrix_processed(grid)
 
 
 def main():
@@ -153,9 +162,7 @@ def define_grid(s_path, drones):
 # Ora la griglia globale è accessibile anche all'esterno della funzione:
 def print_grid():
     global grid
-    print("Griglia finale:")
-    for row in grid:
-        print(row)
+    return grid
 
 if __name__ == "__main__":
     main()

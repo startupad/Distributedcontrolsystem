@@ -2,7 +2,7 @@ import os
 import numpy as np
 import logging
 
-from CoppeliaSim_project.visual_sensor import VisualSensor
+from visual_sensor import VisualSensor
 
 
 class Drone:
@@ -62,15 +62,16 @@ class Drone:
         return self.sim.getObjectPosition(self.handle_drone, self.sim.handle_world)
 
     def next_animation_step(self):
-        """Perform the next animation step for the drone."""
+        # """Perform the next animation step for the drone."""
         self.t = self.sim.getSimulationTime()
-        if self.wait_start_time is not None:
-            if self.t - self.wait_start_time < self.wait_time:
-                return  # Wait until the wait time has passed
-            else:
-                self.wait_start_time = None  # Reset wait start time
+        # if self.wait_start_time is not None:
+        #     if self.t - self.wait_start_time < self.wait_time:
+        #         return  # Wait until the wait time has passed
+        #     else:
+        #         self.wait_start_time = None  # Reset wait start time
 
-        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
+        # il fattore di divisione deve essere lo stesso di del run_simulation()
+        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime) / 7
 
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
 
@@ -88,8 +89,8 @@ class Drone:
 
         self.previousSimulationTime = self.t
 
-        if self.has_reached_target():
-            self.wait_start_time = self.t  # Start the wait time
+        # if self.has_reached_target():
+        #     self.wait_start_time = self.t  # Start the wait time
 
     def calculate_new_path(self, new_config):
         """Calculate a new path for the drone."""
