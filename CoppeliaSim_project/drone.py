@@ -1,12 +1,16 @@
-from visual_sensor import VisualSensor
+import os
+
 import numpy as np
+
+from visual_sensor import VisualSensor
+
 
 class Drone:
     def __init__(self, sim, id, starting_config):
         # Setup iniziale
         self.sim = sim
         self.id = id
-        self.velocity = 5  # Velocità in m/s
+        self.velocity = 0.5  # Velocità in m/s
         self.t = 0
         self.previousSimulationTime = 0
         self.posAlongPath = 0
@@ -15,9 +19,18 @@ class Drone:
         self.path = []
         self.config_to_reach = []
 
-        # Caricamento del modello del drone
-        path_drone = "models/robots/mobile/Quadcopter.ttm"
-        self.handle_drone = self.sim.loadModel(path_drone)
+        # Get the directory where the running Python file is located
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+        # Construct the full path to the model
+        path_drone = os.path.join(base_path, 'Quadcopter.ttm')
+
+        # Check if the file exists
+        if not os.path.exists(path_drone):
+            print(f"Error: the file {path_drone} does not exist.")
+        else:
+            self.handle_drone = self.sim.loadModel(path_drone)
+
         if self.handle_drone == -1:
             print(f"Error loading model for Drone {self.id}: ", self.handle_drone)
         else:
@@ -42,15 +55,21 @@ class Drone:
 
     def next_animation_step(self):
         self.t = self.sim.getSimulationTime()
-        # self.velocity = self.path_total_length*5
-        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime) / 10
-        # print("path: ", self.path)
-        # print("pos_along: ", self.posAlongPath)
+        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime)
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
-        # print("config: ", config)
+
         if config:
-            self.sim.setObjectPosition(self.target_handle, config[0:3], self.sim.handle_world)
-            self.sim.setObjectQuaternion(self.target_handle, config[3:7], self.sim.handle_world)
+            if len(config) >= 3:
+                self.sim.setObjectPosition(self.target_handle, config[0:3], self.sim.handle_world)
+                if len(config) >= 7:
+                    self.sim.setObjectQuaternion(self.target_handle, config[3:7], self.sim.handle_world)
+                else:
+                    print(f"Warning: config does not contain enough elements for quaternion: {config}")
+            else:
+                print(f"Error: config does not contain enough elements for position: {config}")
+        else:
+            print("Error: config is None")
+
         self.previousSimulationTime = self.t
 
     def calculate_new_path(self, new_config):
