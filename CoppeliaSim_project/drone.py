@@ -15,6 +15,7 @@ class Drone:
         self.path = []
         self.config_to_reach = []
 
+
         # Caricamento del modello del drone
         path_drone = "models/robots/mobile/Quadcopter.ttm"
         self.handle_drone = self.sim.loadModel(path_drone)
