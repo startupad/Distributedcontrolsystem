@@ -18,6 +18,7 @@ def create_s_path(centers, width):
     return s_path
 
 
+
 def main():
     # Initialize the client for communication with CoppeliaSim
     client = RemoteAPIClient()
