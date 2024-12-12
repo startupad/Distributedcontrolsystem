@@ -1,6 +1,5 @@
 import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
-from dask.array import apply_gufunc
 
 from CoppeliaSim_project.tessellation import apply_tessellation
 from drone import Drone
@@ -51,6 +50,7 @@ def main():
 
     # Perform the first simulation step to avoid errors in calculations involving delta t
     sim.step()
+    previousSimulationTime = 0
 
     # Simulation loop
     for center in s_path:
@@ -58,11 +58,10 @@ def main():
         drones[0].calculate_new_path(center)
 
         # applying formation control
-        previousSimulationTime = 0
         step = (sim.getSimulationTime() - previousSimulationTime) / 10
         previousSimulationTime = sim.getSimulationTime()
 
-        desired_dist_matrix = np.array([[0, 0.5, 1], [1, 0, 0.5], [1, 0.5, 0]])
+        desired_dist_matrix = np.array([[0, 1.1, 0.5], [0.5, 0, 1.1], [0.5, 1.1, 0]])
         tolerance = 0.1
 
         out = fc.formation_control(step, desired_dist_matrix, tolerance)
