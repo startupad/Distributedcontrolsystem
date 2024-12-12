@@ -10,7 +10,7 @@ class Drone:
         # Setup iniziale
         self.sim = sim
         self.id = id
-        self.velocity = 1  # Velocità in m/s
+        self.velocity = 10  # Velocità in m/s
         self.t = 0
         self.previousSimulationTime = 0
         self.posAlongPath = 0
@@ -84,7 +84,6 @@ class Drone:
         self.sim.setObjectPosition(self.target_handle, -1, position)
 
     def read_sensor(self):
-        # Legge i dati dal sensore visivo
         return self.sensor.read_sensor()
 
     def get_drone_config_info(self):
