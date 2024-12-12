@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
@@ -5,9 +6,24 @@ from tessellation import apply_tessellation
 from drone import Drone
 from terrain import Terrain
 from fly_controller import FlyController
+from config import TOLERANCE, GRID_SIZE, N_DRONES
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+def initialize_simulation():
+    """Initialize the simulation client and start the simulation."""
+    client = RemoteAPIClient()
+    sim = client.require('sim')
+    sim.setStepping(True)
+    sim.startSimulation()
+    logging.info("Simulation started")
+    return sim
 
 
 def create_s_path(centers, width):
+    """Create an S-shaped path from the grid centers."""
     s_path = []
     for i in range(0, len(centers), width):
         row = centers[i:i + width]
@@ -17,65 +33,31 @@ def create_s_path(centers, width):
     return s_path
 
 
-def main():
-    # Initialize the client for communication with CoppeliaSim
-    client = RemoteAPIClient()
-    sim = client.require('sim')
-    sim.setStepping(True)
-    sim.startSimulation()
 
-
-    # Variable to remember the previous time
-    t_previous = 0
-
-    # Create the terrain and apply tessellation
-    terrain = Terrain(sim)
-    tessellation = apply_tessellation(terrain)
-
-    # Create the S-shaped path
-    width = terrain.get_dimensions()[0]
-    s_path = create_s_path(tessellation.centers, width)
-
-    # Initial configuration and dynamic creation of multiple drones
-    n_drones = get_n_drones()
+def initialize_drones(sim, n_drones):
+    """Initialize drones with their starting configurations."""
     drones = []
-
-    # Define initial configurations for each drone
     for i in range(n_drones):
         initial_config = [i + 1, 2, 0.5, 0, 0, 0, 1]
-        drone = Drone(sim, id=str(i + 1), starting_config=initial_config)
+        drone = Drone(sim, drone_id=str(i + 1), starting_config=initial_config)
         drones.append(drone)
+    return drones
 
-
-    # Create the flight controller
-    fc = FlyController(sim, drones)
-
-    # Perform the first simulation step to avoid errors in calculations involving delta t
-    sim.step()
-    previousSimulationTime = 0
-    
-
-    for center in s_path:  # Per ogni centro in s_path
-        # Calcolare il valore medio per i 3 droni
-        grid = define_grid(s_path, drones)
-        print(s_path.__len__())
-                
-        # Set the new target for each drone
+def run_simulation(sim, s_path, drones, fc):
+    """Run the simulation loop."""
+    for center in s_path:
         drones[0].calculate_new_path(center)
 
-        # applying formation control
+        previousSimulationTime = 0
         step = (sim.getSimulationTime() - previousSimulationTime) / 10
         previousSimulationTime = sim.getSimulationTime()
 
-        desired_dist_matrix = np.array([[0, 1.1, 0.5], [0.5, 0, 1.1], [0.5, 1.1, 0]])
-        tolerance = 0.1
-
-        out = fc.formation_control(step, desired_dist_matrix, tolerance)
+        desired_dist_matrix = np.array([[0, 0.5, 1], [1, 0, 0.5], [1, 0.5, 0]])
+        out = fc.formation_control(step, desired_dist_matrix, TOLERANCE)
 
         drones[1].calculate_new_path(out[1])
         drones[2].calculate_new_path(out[2])
 
-        # Wait until all drones reach their target
         all_drones_reached = False
         while not all_drones_reached:
             all_drones_reached = True
@@ -83,20 +65,34 @@ def main():
                 drone.next_animation_step()
                 if not drone.has_reached_target():
                     all_drones_reached = False
-
-            # Perform a simulation step
             sim.step()
     
     print('GRIGLIA FINALE',print_grid())
 
-    # Stop the simulation
-    sim.stopSimulation()
-    print("Simulation ended")
 
+def main():
+    """Main function to run the simulation."""
+    try:
+        sim = initialize_simulation()
 
-# Function to get the number of drones from the interface
-def get_n_drones():
-    return 3
+        terrain = Terrain(sim)
+        tessellation = apply_tessellation(terrain)
+
+        width = terrain.get_dimensions()[0]
+        s_path = create_s_path(tessellation.centers, width)
+
+        drones = initialize_drones(sim, N_DRONES)
+        fc = FlyController(sim, drones)
+
+        sim.step()  # Perform the first simulation step
+
+        run_simulation(sim, s_path, drones, fc)
+
+        sim.stopSimulation()
+        logging.info("Simulation ended")
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
