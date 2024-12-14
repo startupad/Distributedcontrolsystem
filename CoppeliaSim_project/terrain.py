@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from math import exp
+import matplotlib
+matplotlib.use('Agg')  # Use a non-interactive backend
 
 
 class Terrain:

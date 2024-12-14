@@ -37,7 +37,7 @@ class Tessellation:
         self.plot_centers(ax)
         self.set_plot_limits(ax)
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.show()
+        # plt.show()
 
     def plot_squares(self, ax):
         """Plot the grid squares."""

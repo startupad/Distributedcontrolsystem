@@ -108,3 +108,14 @@ class FlyController:
             rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
             new_drone_targets_config = np.subtract(self.matrix_drone_config, rate)
             return np.round(new_drone_targets_config, 5).tolist()
+
+    def get_drones_positions(self):
+        """Get the positions of all drones."""
+        positions = []
+        for i in range(self.n_drones):
+            pos, orientation = self.drones_list[i].get_drone_config_info()
+            if len(pos) == 3:
+                positions.append(pos)
+            else:
+                logging.error(f"Drone {i} returned invalid position: {pos}")
+        return np.array(positions)

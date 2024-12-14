@@ -1,35 +1,50 @@
-from flask import Flask, request, jsonify, render_template
-import json
-import threading
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import os
-import time
+import threading
+import json
+import sys
+from os.path import abspath, dirname
+import matplotlib
+matplotlib.use('TkAgg')  
+# Aggiungi il percorso di CoppeliaSim_project a sys.path
+sys.path.append(abspath(dirname(__file__) + '/../coppeliasim_project'))
+
+# Importa la funzione main dal file main.py per avviare la simulazione di CoppeliaSim
+from main import main
+import api
+
 app = Flask(__name__)
 
-# Percorso del file dove verranno salvate le matrici
-FILE_PATH = 'data/matrices.json'
-FILE_PATH_PROCESSED = 'data/processed_matrices.json'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'web-app'
+
+FILE_PATH = os.path.join(BASE_DIR, '..', 'data', 'matrices.json')
+FILE_PATH = os.path.abspath(FILE_PATH)  # Assicurati che il percorso sia assoluto
+
+FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
+FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
+
 file_lock = threading.Lock()
+
+# Stato per controllare l'esecuzione della simulazione
+simulation_thread = None
+simulation_running = threading.Event()
+
+def ensure_directory_exists(file_path):
+    """Crea la directory per il file se non esiste."""
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def save_matrix(matrix):
     with file_lock:
         try:
-            # Legge le matrici esistenti dal file
+            ensure_directory_exists(FILE_PATH)  # Assicura che la directory esista
+            # Salva la matrice nel file
             with open(FILE_PATH, 'w') as f:
                 json.dump(matrix, f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = []
-        print(" [x] Matrice salvata nel file")
-        
-        
-def save_matrix_processed(matrix):
-    with file_lock:
-        try:
-            # Legge le matrici esistenti dal file
-            with open(FILE_PATH_PROCESSED, 'w') as f:
-                json.dump(matrix, f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            data = []
-        print(" [x] Matrice salvata nel file")
+            print(" [x] Matrice salvata nel file")
+        except Exception as e:
+            print(f"Errore durante il salvataggio della matrice: {e}")
 
 @app.route('/')
 def index():
@@ -42,56 +57,83 @@ def save_priorities():
         return jsonify({'error': 'Nessuna priorità fornita'}), 400
     priorities = data['priorities']
     save_matrix(priorities)
+    start_simulation()
     return jsonify({'status': 'Matrice ricevuta con successo'}), 200
+
+@app.route('/start-simulation', methods=['POST'])
+def start_simulation():
+    global simulation_thread
+
+    if simulation_running.is_set():
+        return jsonify({'error': 'La simulazione è già in esecuzione'}), 400
+
+    def run_simulation():
+        try:
+            simulation_running.set()
+            main()
+        except Exception as e:
+            print(f"Errore durante l'esecuzione della simulazione: {e}")
+        finally:
+            simulation_running.clear()
+
+    # Avvia un thread per la simulazione
+    simulation_thread = threading.Thread(target=run_simulation, daemon=True)
+    simulation_thread.start()
+    return jsonify({'status': 'Simulazione avviata con successo'}), 200
+
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # Necessario per proiezioni 3D
+
 
 
 @app.route('/get-processed-matrix', methods=['GET'])
 def get_processed_matrix():
-    # Crea una matrice vuota 6x6 piena di zeri
-    empty_matrix = [[0 for _ in range(6)] for _ in range(6)]
-    max_attempts = 60  # Timeout dopo 60 secondi
-    attempts = 0
+    simulation_end = api.get_simulation_end() 
+    list1_copy, list2_copy, list3_copy = api.get_coordinates()
 
-    # Assicurati che la cartella `data` esista
-    os.makedirs(os.path.dirname(FILE_PATH_PROCESSED), exist_ok=True)
+    x_values = [list1_copy[0], list2_copy[0], list3_copy[0]]
+    y_values = [list1_copy[1], list2_copy[1], list3_copy[1]]
+    z_values = [list1_copy[2], list2_copy[2], list3_copy[2]]
 
-    with file_lock:
-        # Se il file esiste, cancellalo per garantirne uno nuovo
-        if os.path.exists(FILE_PATH_PROCESSED):
-            os.remove(FILE_PATH_PROCESSED)
-        
-        # Crea un nuovo file con la matrice vuota
-        with open(FILE_PATH_PROCESSED, 'w') as f:
-            json.dump(empty_matrix, f)
-            print("File 'processed_matrices.json' creato con una matrice vuota.")
-
-    # Inizia a controllare il file ogni secondo
-    while attempts < max_attempts:
-        time.sleep(1)  # Aspetta 1 secondo prima di controllare di nuovo
-        attempts += 1
+    if not simulation_end:
+        # Restituisci i punti e errore 400
+        return jsonify({
+            'points': {
+                'x': x_values,
+                'y': y_values,
+                'z': z_values
+            },
+            'error': 'La simulazione non è ancora terminata'
+        }), 400
+    else:
+        # Assicurati che la cartella `data` esista
+        os.makedirs(os.path.dirname(FILE_PATH_PROCESSED), exist_ok=True)
 
         with file_lock:
             try:
                 # Prova ad aprire il file per leggere la matrice
                 with open(FILE_PATH_PROCESSED, 'r') as f:
                     data = json.load(f)
-                
-                # Stampa i dati letti per verificare cosa viene letto dal file
                 print("Dati letti dalla matrice:", data)
-
-                # Controlla se la matrice ha cambiato valori rispetto a quella vuota
-                if data != empty_matrix:
-                    print("Matrice modificata rilevata:", data)
-                    return jsonify(data)
-                    
+                return jsonify(data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Errore nella lettura del file: {e}")
-                continue  # Ignora l'errore e continua il ciclo
-
-    # Se si verifica il timeout dopo 60 tentativi (60 secondi)
-    print("Timeout: nessuna modifica rilevata nella matrice entro 60 secondi.")
-    return jsonify({'error': 'Timeout waiting for processed matrix'}), 504
+                return jsonify({'error': 'Nessuna matrice elaborata disponibile'}), 404
+  
+            
+@app.route('/get-texture', methods=['GET'])
+def get_texture():
+    """Endpoint per restituire l'immagine texture.png."""
+    texture_path = os.path.join(BASE_DIR, '..', 'texture.png')
+    
+    # Verifica che il file esista prima di tentare di inviarlo
+    if os.path.exists(texture_path):
+        return send_from_directory(os.path.dirname(texture_path), 'texture.png')
+    else:
+        return jsonify({'error': 'File texture.png non trovato'}), 404
 
 
 if __name__ == '__main__':
+    # Avvia il server Flask sul thread principale
     app.run(debug=True)
