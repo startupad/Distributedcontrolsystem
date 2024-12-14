@@ -22,6 +22,18 @@ def save_matrix_processed(file_path, matrix):
         except Exception as e:
             print(f"Errore durante il salvataggio della matrice: {e}")
             
+def get_priority_matrix(file_path):
+    with file_lock:
+        try:
+            with open(file_path, 'r') as f:
+                matrix = json.load(f)
+            print(f" [x] Matrice caricata dal file: {file_path}")
+            return matrix
+        except Exception as e:
+            print(f"Errore durante il caricamento della matrice: {e}")
+            return None
+    
+            
 # api.js
 # api.py
 from threading import Lock

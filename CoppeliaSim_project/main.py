@@ -16,10 +16,12 @@ web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web-a
 sys.path.append(web_app_path)
 
 # Ora puoi importare 'app' dalla cartella 'web-app'
-from api import save_matrix_processed, set_simulation_end, set_coordinates
+from api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
 
 # Percorso del file processed_matrices.json
 FILE_PATH_PROCESSED = 'data/processed_matrices.json'
+FILE_PATH= 'data/matrices.json'
+
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
 
@@ -51,7 +53,7 @@ def initialize_drones(sim, n_drones):
     """Initialize drones with their starting configurations."""
     drones = []
     for i in range(n_drones):
-        initial_config = [i + 1, 2, 0.5, 0, 0, 0, 1]
+        initial_config = [i + 1, 0, 0.5, 0, 0, 0, 1]
         drone = Drone(sim, drone_id=str(i + 1), starting_config=initial_config)
         drones.append(drone)
     return drones
@@ -76,27 +78,24 @@ def run_simulation(sim, s_path, drones, fc):
         #     print(f"Drone {i + 1} sensor value: {sensor_value}")
         #     total_sensor_value += sensor_value
         # average_sensor_value = total_sensor_value / 3
-        average_sensor_value = drones[0].read_sensor()  # Read the sensor value
-        # print(f"Drone 1 sensor value: {average_sensor_value}")
-        
-        # Round the average sensor value to 1, 2, or 3
-        if average_sensor_value < 1.5:
+        sensor_value = drones[0].read_sensor()  # Leggi il valore
+        print(f"Drone 1 sensor value: {sensor_value}")
+
+        # Arrotonda il valore a 1, 2 o 3
+        if sensor_value < 1.5:
             rounded_value = 1
-        elif average_sensor_value < 2.5:
+        elif sensor_value < 2.5:
             rounded_value = 2
         else:
             rounded_value = 3
 
-        # Calculate the coordinates for the 'center'
-        row = index // grid_size  # Row index (integer division)
-        col = index % grid_size   # Column index (modulo)
+        # Calcola le coordinate nella griglia
+        row = index // grid_size  # Riga
+        col = index % grid_size  # Colonna
 
-        # Insert the rounded value into the grid
+        # Inserisci il valore arrotondato nella griglia
         grid[row][col] = rounded_value
 
-        # Reverse the row if we're in the second or subsequent rows
-        if row % 2 == 1:
-            grid[row].reverse()
         index += 1
 
         # Set up formation control parameters
@@ -133,7 +132,14 @@ def run_simulation(sim, s_path, drones, fc):
                 if not drone.has_reached_target():
                     all_drones_reached = False
             sim.step()
+    # Crea il percorso a S invertendo le righe dispari
+    for i in range(grid_size):
+        if i % 2 == 1:  # Se la riga è dispari
+            grid[i].reverse()
     # Save the processed matrix
+    print("Griglia finale:")
+    for row in grid:
+        print(row)
     save_matrix_processed(FILE_PATH_PROCESSED, grid)
     set_simulation_end(True)
     
@@ -143,6 +149,8 @@ def main():
     """Main function to run the simulation."""
     try:
         sim = initialize_simulation()
+        
+        priority_matrix = get_priority_matrix(FILE_PATH) # matrice priorità assegnata dalla web-app
 
         terrain = Terrain(sim)
         tessellation = apply_tessellation(terrain)
