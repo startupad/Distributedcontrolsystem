@@ -4,6 +4,7 @@ import logging
 
 from CoppeliaSim_project.visual_sensor import VisualSensor
 
+
 class Drone:
     def __init__(self, sim, drone_id, starting_config, wait_time=3.0):
         """Initialize the drone with its simulation environment, ID, starting configuration, and wait time."""

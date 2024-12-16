@@ -24,9 +24,8 @@ FILE_PATH = 'data/matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
-
 # Configure logging
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def initialize_simulation():
@@ -147,34 +146,37 @@ def run_simulation(sim, s_path, drones, fc):
 
 def main():
     """Main function to run the simulation."""
+    try:
+        sim = initialize_simulation()
 
-    sim = initialize_simulation()
+        priority_matrix = get_priority_matrix(FILE_PATH)  # matrice priorità assegnata dalla web-app
 
-    priority_matrix = get_priority_matrix(FILE_PATH)  # matrice priorità assegnata dalla web-app
+        terrain = Terrain(sim)
+        tessellation_regular, tessellation_voronoi = apply_tessellation(terrain)
 
-    terrain = Terrain(sim)
-    tessellation = apply_tessellation(terrain)
+        # Variabile per decidere il tipo di tassellazione
+        tessellation = tessellation_regular
 
-    print(tessellation.centers)
+        print(tessellation.centers)
 
-    width = terrain.get_dimensions()[0]
-    s_path = create_s_path(tessellation.centers, width)
+        width = terrain.get_dimensions()[0]
+        s_path = create_s_path(tessellation.centers, width)
 
-    print(s_path)
+        print(s_path)
 
-    drones = initialize_drones(sim, N_DRONES)
-    fc = FlyController(sim, drones)
+        drones = initialize_drones(sim, N_DRONES)
+        fc = FlyController(sim, drones)
 
-    sim.step()  # Perform the first simulation step
+        sim.step()  # Perform the first simulation step
 
-    # Run the simulation with plotting
-    run_simulation(sim, s_path, drones, fc)
+        # Run the simulation with plotting
+        run_simulation(sim, s_path, drones, fc)
 
-    sim.stopSimulation()
-    logging.info("Simulation ended")
+        sim.stopSimulation()
+        logging.info("Simulation ended")
 
-    # except Exception as e:
-        # logging.error(f"An error occurred: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
 
 
 # Ora la griglia globale è accessibile anche all'esterno della funzione:
