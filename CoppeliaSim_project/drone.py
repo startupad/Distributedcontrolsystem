@@ -2,8 +2,7 @@ import os
 import numpy as np
 import logging
 
-from visual_sensor import VisualSensor
-
+from CoppeliaSim_project.visual_sensor import VisualSensor
 
 class Drone:
     def __init__(self, sim, drone_id, starting_config, wait_time=3.0):

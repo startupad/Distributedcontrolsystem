@@ -10,7 +10,7 @@ matplotlib.use('TkAgg')
 sys.path.append(abspath(dirname(__file__) + '/../coppeliasim_project'))
 
 # Importa la funzione main dal file main.py per avviare la simulazione di CoppeliaSim
-from main import main
+from CoppeliaSim_project.main import main
 import api
 
 app = Flask(__name__)

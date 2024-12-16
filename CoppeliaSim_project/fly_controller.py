@@ -1,8 +1,9 @@
 import numpy as np
 import logging
 
+
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class FlyController:
@@ -103,8 +104,8 @@ class FlyController:
             logging.info(f"Actual inter-drones distances = norm matrix: {self.matrix_norm}")
             return np.round(self.matrix_drone_config, 5).tolist()
         else:
-            #logging.info(f"Lap: \n {self.matrix_laplacian}")
-            #logging.info(f"Norm matrix: \n {self.matrix_norm}")
+            # logging.info(f"Lap: \n {self.matrix_laplacian}")
+            # logging.info(f"Norm matrix: \n {self.matrix_norm}")
             rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
             new_drone_targets_config = np.subtract(self.matrix_drone_config, rate)
             return np.round(new_drone_targets_config, 5).tolist()
