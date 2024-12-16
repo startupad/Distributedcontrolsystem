@@ -3,11 +3,11 @@ import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from tessellation import apply_tessellation
-from drone import Drone
-from terrain import Terrain
-from fly_controller import FlyController
-from config import TOLERANCE, GRID_SIZE, N_DRONES
+from CoppeliaSim_project.tessellation import apply_tessellation
+from CoppeliaSim_project.drone import Drone
+from CoppeliaSim_project.terrain import Terrain
+from CoppeliaSim_project.fly_controller import FlyController
+from CoppeliaSim_project.config import TOLERANCE, GRID_SIZE, N_DRONES
 import sys
 import os
 
@@ -20,13 +20,12 @@ from api import save_matrix_processed, set_simulation_end, set_coordinates, get_
 
 # Percorso del file processed_matrices.json
 FILE_PATH_PROCESSED = 'data/processed_matrices.json'
-FILE_PATH= 'data/matrices.json'
+FILE_PATH = 'data/matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
-
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def initialize_simulation():
@@ -49,6 +48,7 @@ def create_s_path(centers, width):
         s_path.extend(row)
     return s_path
 
+
 def initialize_drones(sim, n_drones):
     """Initialize drones with their starting configurations."""
     drones = []
@@ -58,12 +58,12 @@ def initialize_drones(sim, n_drones):
         drones.append(drone)
     return drones
 
+
 def run_simulation(sim, s_path, drones, fc):
     prev_time = 0
     global grid  # Use the global grid variable
     grid_size = 6  # grid size (6x6)
     index = 0  # Index for iterating over s_path
-
 
     # Simulation loop
     for center in s_path:
@@ -117,12 +117,12 @@ def run_simulation(sim, s_path, drones, fc):
         drones[0].calculate_new_path(center)
         drones[1].calculate_new_path(out[1])
         drones[2].calculate_new_path(out[2])
-        
+
         target_coordinate_1 = [float(coord) for coord in center[:3]]
         target_coordinate_2 = [float(coord) for coord in out[1][:3]]
         target_coordinate_3 = [float(coord) for coord in out[2][:3]]
         set_coordinates(target_coordinate_1, target_coordinate_2, target_coordinate_3)
-        
+
         # Ensure all drones reach their targets
         all_drones_reached = False
         while not all_drones_reached:
@@ -142,26 +142,30 @@ def run_simulation(sim, s_path, drones, fc):
         print(row)
     save_matrix_processed(FILE_PATH_PROCESSED, grid)
     set_simulation_end(True)
-    
 
 
 def main():
     """Main function to run the simulation."""
     try:
         sim = initialize_simulation()
-        
-        priority_matrix = get_priority_matrix(FILE_PATH) # matrice priorità assegnata dalla web-app
+
+        priority_matrix = get_priority_matrix(FILE_PATH)  # matrice priorità assegnata dalla web-app
 
         terrain = Terrain(sim)
-        tessellation = apply_tessellation(terrain)
+        tessellation_regular, tessellation_voronoi = apply_tessellation(terrain)
+
+        # Variabile per decidere il tipo di tassellazione
+        tessellation = tessellation_regular
+
+        print(tessellation.centers)
 
         width = terrain.get_dimensions()[0]
         s_path = create_s_path(tessellation.centers, width)
 
+        print(s_path)
+
         drones = initialize_drones(sim, N_DRONES)
         fc = FlyController(sim, drones)
-
-
 
         sim.step()  # Perform the first simulation step
 
@@ -174,10 +178,12 @@ def main():
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
+
 # Ora la griglia globale è accessibile anche all'esterno della funzione:
 def print_grid():
     global grid
     return grid
+
 
 if __name__ == "__main__":
     main()
