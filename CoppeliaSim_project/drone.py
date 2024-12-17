@@ -3,7 +3,7 @@ import numpy as np
 import logging
 
 from CoppeliaSim_project.visual_sensor import VisualSensor
-
+from config import TOLERANCE, DRONE_VELOCITY
 
 class Drone:
     def __init__(self, sim, drone_id, starting_config, wait_time=3.0):
@@ -12,7 +12,7 @@ class Drone:
 
         self.id = drone_id
         self.starting_config = starting_config
-        self.velocity = 5
+        self.velocity = DRONE_VELOCITY
 
         self.posAlongPath = 0
         self.previousSimulationTime = 0
@@ -107,8 +107,7 @@ class Drone:
         """Check if the drone has reached its target position."""
         current_pos = self.get_position()
         target_pos = self.config_to_reach[0:3]
-        # Check if the drone is close enough to the target position
-        tolerance = 0.25  # Define a tolerance for reaching the target
 
+        # Check if the drone is close enough to the target position
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
-        return distance < tolerance
+        return distance < TOLERANCE

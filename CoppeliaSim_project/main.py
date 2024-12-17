@@ -7,7 +7,7 @@ from CoppeliaSim_project.tessellation import apply_tessellation
 from CoppeliaSim_project.drone import Drone
 from CoppeliaSim_project.terrain import Terrain
 from CoppeliaSim_project.fly_controller import FlyController
-from CoppeliaSim_project.config import TOLERANCE, GRID_SIZE, N_DRONES
+from CoppeliaSim_project.config import TOLERANCE, N_DRONES
 import sys
 import os
 
@@ -105,7 +105,6 @@ def run_simulation(sim, s_path, drones, fc):
         index += 1
         # Set up formation control parameters
         desired_dist_matrix = np.array([[0, 0.5, 0.5], [0.5, 0, 1], [0.5, 1, 0]])
-        tolerance = 0.1
 
         # Set a new target for the drone leader
         drones[0].calculate_new_path(center)
@@ -134,7 +133,7 @@ def run_simulation(sim, s_path, drones, fc):
             for p in range(sub_divider):
                 # Compute formation control
                 sub_step = step / sub_divider * p
-                out = fc.formation_control(sub_step, desired_dist_matrix, tolerance)
+                out = fc.formation_control(sub_step, desired_dist_matrix, TOLERANCE)
 
                 # set new target for the slave drones
                 drones[1].calculate_new_path(out[1])
