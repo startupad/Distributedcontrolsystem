@@ -12,7 +12,7 @@ class Drone:
 
         self.id = drone_id
         self.starting_config = starting_config
-        self.velocity = 0.5
+        self.velocity = DRONE_VELOCITY
 
         self.posAlongPath = 0
         self.previousSimulationTime = 0
@@ -61,17 +61,10 @@ class Drone:
         """Get the current position of the drone."""
         return self.sim.getObjectPosition(self.handle_drone, self.sim.handle_world)
 
-    def next_animation_step(self):
+    def next_animation_step(self, t_step):
         # """Perform the next animation step for the drone."""
-        self.t = self.sim.getSimulationTime()
-        # if self.wait_start_time is not None:
-        #     if self.t - self.wait_start_time < self.wait_time:
-        #         return  # Wait until the wait time has passed
-        #     else:
-        #         self.wait_start_time = None  # Reset wait start time
 
-        # il fattore di divisione deve essere lo stesso di del run_simulation()
-        self.posAlongPath += self.velocity * (self.t - self.previousSimulationTime) / 7
+        self.posAlongPath += self.velocity * t_step
 
         config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
 
@@ -87,10 +80,6 @@ class Drone:
         else:
             logging.error("Config is None")
 
-        self.previousSimulationTime = self.t
-
-        # if self.has_reached_target():
-        #     self.wait_start_time = self.t  # Start the wait time
 
     def calculate_new_path(self, new_config):
         """Calculate a new path for the drone."""
@@ -118,8 +107,7 @@ class Drone:
         """Check if the drone has reached its target position."""
         current_pos = self.get_position()
         target_pos = self.config_to_reach[0:3]
-        # Check if the drone is close enough to the target position
-        tolerance = 0.75  # Define a tolerance for reaching the target
 
+        # Check if the drone is close enough to the target position
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
-        return distance < tolerance
+        return distance < TOLERANCE
