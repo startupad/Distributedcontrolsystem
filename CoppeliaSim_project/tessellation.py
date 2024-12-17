@@ -17,13 +17,14 @@ class Tessellation:
     clipped_regions = None
     squares = None
 
-    def __init__(self, terrain, n_points=40, grid_size=1):
+    def __init__(self, terrain, n_points, grid_size, priority_matrix):
         """Initialize the tessellation with terrain."""
         self.terrain = terrain
         self.width, self.height = terrain.get_dimensions()
         self.points = np.random.rand(n_points, 2) * [self.width, self.height]  # Genera punti casuali
         self.squares = []
         self.grid_size = grid_size
+        self.priority_matrix = priority_matrix
 
     def generate_voronoi(self):
         """Generate Voronoi tessellation."""
@@ -107,11 +108,25 @@ class Tessellation:
     def get_grid_centers(self):
         """Calculate and return the center points of the grid squares."""
         self.centers = []  # Clear the list of centers
-        for square in self.squares:
-            center = self.calculate_center(square)
+        n_squares = len(self.squares)
+        for i in range(n_squares):
+
+            x_center = (self.squares[i][0][0] + self.squares[i][2][0]) / 2
+            y_center = (self.squares[i][0][1] + self.squares[i][2][1]) / 2
+            print(x_center, y_center)
+
+            col = i // 6
+            if col % 2 == 0:
+                row = 5 - (i % 6)
+
+            else:
+                row = i % 6
+
+            priority_value = self.priority_matrix[row][col]
+            center = [x_center, y_center, 4-priority_value, 0, 0, 0, 1]
             self.centers.append(center)
 
-        print(len(self.centers))
+        print(self.centers)
         return self.centers
 
     def plot_centers(self, ax):
@@ -134,27 +149,24 @@ class Tessellation:
 
     def calculate_center(self, square):
         """Calculate the center point of a square."""
-        x_center = (square[0][0] + square[2][0]) / 2
-        y_center = (square[0][1] + square[2][1]) / 2
-        return [x_center, y_center, 1, 0, 0, 0, 1]
 
     def create_square(self, x, y):
         """Create a square for the grid."""
         return [(x, y), (x + self.grid_size, y), (x + self.grid_size, y + self.grid_size), (x, y + self.grid_size)]
 
 
-def apply_tessellation(terrain):
+def apply_tessellation(terrain, priority_matrix):
     """Apply tessellation to the given terrain."""
 
     # Voronoi
-    tessellation_voronoi = Tessellation(terrain, n_points=40, grid_size=1)
+    tessellation_voronoi = Tessellation(terrain, 40, 1, priority_matrix)
     vor = tessellation_voronoi.generate_voronoi()
     tessellation_voronoi.clipped_regions = tessellation_voronoi.clip_voronoi(vor)
     tessellation_voronoi.plot_voronoi()
 
     # regular
     grid_size = 1
-    tessellation_regular = Tessellation(terrain, grid_size=grid_size)
+    tessellation_regular = Tessellation(terrain, 40, grid_size, priority_matrix)
     tessellation_regular.apply_grid()
     tessellation_regular.plot_grid()
     squares = tessellation_regular.get_grid_squares()

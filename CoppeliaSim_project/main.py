@@ -1,14 +1,12 @@
 import logging
 import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-from tessellation import apply_tessellation
-from drone import Drone
-from terrain import Terrain
-from fly_controller import FlyController
-from config import TOLERANCE, GRID_SIZE, N_DRONES
+from CoppeliaSim_project.tessellation import apply_tessellation
+from CoppeliaSim_project.drone import Drone
+from CoppeliaSim_project.terrain import Terrain
+from CoppeliaSim_project.fly_controller import FlyController
+from CoppeliaSim_project.config import TOLERANCE, GRID_SIZE, N_DRONES
 
 import sys
 import os
@@ -174,17 +172,13 @@ def main():
         priority_matrix = get_priority_matrix(FILE_PATH)  # matrice priorità assegnata dalla web-app
 
         terrain = Terrain(sim)
-        tessellation_regular, tessellation_voronoi = apply_tessellation(terrain)
+        tessellation_regular, tessellation_voronoi = apply_tessellation(terrain, priority_matrix)
 
         # Variabile per decidere il tipo di tassellazione
         tessellation = tessellation_regular
 
-        #print(tessellation.centers)
-
         width = terrain.get_dimensions()[0]
         s_path = create_s_path(tessellation.centers, width)
-
-        #print(s_path)
 
         drones = initialize_drones(sim, N_DRONES)
         fc = FlyController(sim, drones)
