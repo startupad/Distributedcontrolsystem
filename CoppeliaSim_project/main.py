@@ -3,11 +3,13 @@ import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from CoppeliaSim_project.tessellation import apply_tessellation
-from CoppeliaSim_project.drone import Drone
-from CoppeliaSim_project.terrain import Terrain
-from CoppeliaSim_project.fly_controller import FlyController
-from CoppeliaSim_project.config import TOLERANCE, N_DRONES
+
+from tessellation import apply_tessellation
+from drone import Drone
+from terrain import Terrain
+from fly_controller import FlyController
+from config import TOLERANCE, GRID_SIZE, N_DRONES
+
 import sys
 import os
 
