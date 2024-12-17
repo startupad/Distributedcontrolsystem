@@ -102,6 +102,16 @@ class FlyController:
     def formation_control(self, delta_t, interdrones_distances, tolerance):
         """Perform formation control."""
         self.matrix_drone_config = self.compute_drone_actual_config_matrix()
+
+        """ formation control limited to the (X,Y) plane """
+        # extract the height of flight from the drone leader
+        z_drone_leader = self.matrix_drone_config[0, 2]
+        # Slicing the matrix, selecting all rows and all columns starting from the third column (excluding X and Y)
+        extra = self.matrix_drone_config[:, 2:]
+        extra[:, 0] = z_drone_leader
+        # Slicing the drone matrix at the first 2 columns such that the formation can work only on the plane X,Y
+        self.matrix_drone_config = self.matrix_drone_config[:, :2]
+
         self.matrix_interdrones_distance = interdrones_distances
         self.update_matrices('f')
 
@@ -109,12 +119,20 @@ class FlyController:
         if diff < tolerance:
             # logging.info("Convergence has been already reached")
             # logging.info(f"Actual inter-drones distances = norm matrix: {self.matrix_norm}")
+
+            # recomposing the drone matrix
+            self.matrix_drone_config = np.concatenate((self.matrix_drone_config, extra), axis=1)
+
             return np.round(self.matrix_drone_config, 5).tolist()
         else:
             # logging.info(f"Lap: \n {self.matrix_laplacian}")
             # logging.info(f"Norm matrix: \n {self.matrix_norm}")
             rate = np.dot(delta_t, np.dot(self.matrix_laplacian, self.matrix_drone_config))
             new_drone_targets_config = np.subtract(self.matrix_drone_config, rate)
+
+            # recomposing the drone matrix with the value computed by the formation algorithm
+            new_drone_targets_config = np.concatenate((new_drone_targets_config, extra), axis=1)
+
             return np.round(new_drone_targets_config, 5).tolist()
 
     def get_drones_positions(self):
