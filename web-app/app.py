@@ -63,6 +63,8 @@ def save_priorities():
 @app.route('/start-simulation', methods=['POST'])
 def start_simulation():
     global simulation_thread
+    print(\
+        "Avvio della simulazione. Attendere qualche minuto per il completamento della simulazione.")
 
     if simulation_running.is_set():
         return jsonify({'error': 'La simulazione è già in esecuzione'}), 400

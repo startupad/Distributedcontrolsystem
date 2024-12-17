@@ -3,6 +3,7 @@ import numpy as np
 import logging
 
 from visual_sensor import VisualSensor
+from config import TOLERANCE, DRONE_VELOCITY
 
 
 class Drone:

@@ -110,15 +110,14 @@ def run_simulation(sim, s_path, drones, fc):
 
         # Set a new target for the drone leader
         drones[0].calculate_new_path(center)
-
-
+        
         drone_reached = False
         while not drone_reached:
             drone_reached = True
 
             # standard coppelia sim frame steps are 50ms long, but we need it to be at most 1.5ms
             step = (sim.getSimulationTime() - prev_time) / 34
-            logging.info(f"step size:  \n {step}")
+            #logging.info(f"step size:  \n {step}")
 
             if step > 0.0015:
                 step = 0.0015
@@ -143,13 +142,19 @@ def run_simulation(sim, s_path, drones, fc):
                 # update animation frame for slave robot
                 drones[1].next_animation_step(sub_step)
                 drones[2].next_animation_step(sub_step)
+                            
+                target_coordinate_1 = [float(coord) for coord in center[:3]]
+                target_coordinate_2 = [float(coord) for coord in out[1][:3]]
+                target_coordinate_3 = [float(coord) for coord in out[2][:3]]
+                set_coordinates(target_coordinate_1, target_coordinate_2, target_coordinate_3)
+
+
 
             if not drones[0].has_reached_target():
                 drone_reached = False
             sim.step()
+        
 
-    print('GRIGLIA FINALE', print_grid())
-    # Crea il percorso a S invertendo le righe dispari
     for i in range(grid_size):
         if i % 2 == 1:  # Se la riga è dispari
             grid[i].reverse()
@@ -174,12 +179,12 @@ def main():
         # Variabile per decidere il tipo di tassellazione
         tessellation = tessellation_regular
 
-        print(tessellation.centers)
+        #print(tessellation.centers)
 
         width = terrain.get_dimensions()[0]
         s_path = create_s_path(tessellation.centers, width)
 
-        print(s_path)
+        #print(s_path)
 
         drones = initialize_drones(sim, N_DRONES)
         fc = FlyController(sim, drones)
