@@ -19,8 +19,8 @@ sys.path.append(web_app_path)
 from api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
 
 # Percorso del file processed_matrices.json
-FILE_PATH_PROCESSED = '../data/processed_matrices.json'
-FILE_PATH = '../data/matrices.json'
+FILE_PATH_PROCESSED = 'data/processed_matrices.json'
+FILE_PATH = 'data/matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
