@@ -49,12 +49,18 @@ def create_s_path(centers, width):
     return s_path
 
 
+
 def initialize_drones(sim, n_drones):
     """Initialize drones with their starting configurations."""
     drones = []
+    initial_config = [
+        [1.0, 1.0, 0.487],
+        [0.25, 0.25, 0.487],
+        [1.75, 0.25, 0.487]
+    ]
+
     for i in range(n_drones):
-        initial_config = [i + 1, 0, 0.5, 0, 0, 0, 1]
-        drone = Drone(sim, drone_id=str(i + 1), starting_config=initial_config)
+        drone = Drone(sim, drone_id=str(i + 1), starting_config=initial_config[i])
         drones.append(drone)
     return drones
 
@@ -97,41 +103,52 @@ def run_simulation(sim, s_path, drones, fc):
         grid[row][col] = rounded_value
 
         index += 1
-
         # Set up formation control parameters
-        step = (sim.getSimulationTime() - prev_time) / 7
-        prev_time = sim.getSimulationTime()
-        desired_dist_matrix = np.array([[0, 1.1, 1.1], [0.75, 0, 1.1], [0.75, 1, 0]])
-        tolerance = 0.25
+        desired_dist_matrix = np.array([[0, 0.5, 0.5], [0.5, 0, 1], [0.5, 1, 0]])
+        tolerance = 0.1
 
-        # Compute formation control
-        out = fc.formation_control(step, desired_dist_matrix, tolerance)
-
-        # Setup drone parameters and decide the slaves' speed
-        for i in range(len(drones)):
-            drones[i].velocity = 2
-            drones[i].velocity = drones[i].velocity * (1 + pow(pow(fc.matrix_norm[0, i].tolist(), 2), 0.5))
-            # print(f"drone {i} speed = ", drones[i].velocity)
-
-        # Set new targets for the slave drones
+        # Set a new target for the drone leader
         drones[0].calculate_new_path(center)
-        drones[1].calculate_new_path(out[1])
-        drones[2].calculate_new_path(out[2])
 
-        target_coordinate_1 = [float(coord) for coord in center[:3]]
-        target_coordinate_2 = [float(coord) for coord in out[1][:3]]
-        target_coordinate_3 = [float(coord) for coord in out[2][:3]]
-        set_coordinates(target_coordinate_1, target_coordinate_2, target_coordinate_3)
+        iter_n = 0
+        drone_reached = False
+        while not drone_reached:
+            drone_reached = True
+            iter_n += 1
+            print(iter_n)
 
-        # Ensure all drones reach their targets
-        all_drones_reached = False
-        while not all_drones_reached:
-            all_drones_reached = True
-            for drone in drones:
-                drone.next_animation_step()
-                if not drone.has_reached_target():
-                    all_drones_reached = False
+            # standard coppelia sim frame steps are 50ms long, but we need it to be at most 1.5ms
+            step = (sim.getSimulationTime() - prev_time) / 34
+            print("step size: ", step)
+            if step > 0.0015:
+                step = 0.0015
+            prev_time = sim.getSimulationTime()
+
+            # update animation for the master
+            drones[0].next_animation_step(step)
+
+            # I need to run the formation control multiple times to guarantee the convergence at the desired distances.
+            # So, I need to divide each animation step in subintervals where I launch the fc to adjust slaves positions
+            # theoretical best sub_divider = 50 (by optimization test)
+            sub_divider = 10
+            for p in range(sub_divider):
+                # Compute formation control
+                sub_step = step / sub_divider * p
+                out = fc.formation_control(sub_step, desired_dist_matrix, tolerance)
+
+                # set new target for the slave drones
+                drones[1].calculate_new_path(out[1])
+                drones[2].calculate_new_path(out[2])
+
+                # update animation frame for slave robot
+                drones[1].next_animation_step(sub_step)
+                drones[2].next_animation_step(sub_step)
+
+            if not drones[0].has_reached_target():
+                drone_reached = False
             sim.step()
+
+    print('GRIGLIA FINALE', print_grid())
     # Crea il percorso a S invertendo le righe dispari
     for i in range(grid_size):
         if i % 2 == 1:  # Se la riga è dispari
