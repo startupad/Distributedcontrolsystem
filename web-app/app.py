@@ -10,7 +10,7 @@ matplotlib.use('TkAgg')
 sys.path.append(abspath(dirname(__file__) + '/../coppeliasim_project'))
 
 # Importa la funzione main dal file main.py per avviare la simulazione di CoppeliaSim
-from CoppeliaSim_project.main import main
+from main import main
 import api
 
 app = Flask(__name__)
@@ -63,6 +63,8 @@ def save_priorities():
 @app.route('/start-simulation', methods=['POST'])
 def start_simulation():
     global simulation_thread
+    print(\
+        "Avvio della simulazione. Attendere qualche minuto per il completamento della simulazione.")
 
     if simulation_running.is_set():
         return jsonify({'error': 'La simulazione è già in esecuzione'}), 400

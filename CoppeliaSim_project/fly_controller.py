@@ -16,7 +16,7 @@ class FlyController:
         self.sim = sim
         self.drones_list = drones_list
         self.n_drones = len(drones_list)
-        self.dist_max = 10
+        self.dist_max = 17
 
         self.initialize_matrices()
 
@@ -65,6 +65,14 @@ class FlyController:
         """Compute the Laplacian matrix."""
         self.matrix_laplacian = self.matrix_delta - self.matrix_adj
 
+        # scale the laplacian matriz to have its eigenvalues between 2 desired values
+        # convergence speed is directly proportional to the min eigenvalue value
+        min_eig = -0.1 * 10 ** (-5)
+        max_eig = -min_eig
+        matrix_lap_scaled = (self.matrix_laplacian - ((max_eig - min_eig) / 2 * np.identity(3))) / (
+                    (max_eig - min_eig) / 2)
+        self.matrix_laplacian = matrix_lap_scaled
+
     def compute_drone_actual_config_matrix(self):
         """Compute the actual configuration matrix of the drones."""
         matrix_drone_config = []
@@ -99,8 +107,8 @@ class FlyController:
 
         diff = np.linalg.norm(self.matrix_interdrones_distance - self.matrix_norm)
         if diff < tolerance:
-            logging.info("Convergence has been already reached")
-            logging.info(f"Actual inter-drones distances = norm matrix: {self.matrix_norm}")
+            # logging.info("Convergence has been already reached")
+            # logging.info(f"Actual inter-drones distances = norm matrix: {self.matrix_norm}")
             return np.round(self.matrix_drone_config, 5).tolist()
         else:
             # logging.info(f"Lap: \n {self.matrix_laplacian}")
