@@ -2,11 +2,11 @@ import logging
 import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
-from CoppeliaSim_project.tessellation import apply_tessellation
-from CoppeliaSim_project.drone import Drone
-from CoppeliaSim_project.terrain import Terrain
-from CoppeliaSim_project.fly_controller import FlyController
-from CoppeliaSim_project.config import TOLERANCE, GRID_SIZE, N_DRONES
+from tessellation import apply_tessellation
+from drone import Drone
+from terrain import Terrain
+from fly_controller import FlyController
+from config import TOLERANCE, GRID_SIZE, N_DRONES
 
 import sys
 import os
@@ -19,8 +19,8 @@ sys.path.append(web_app_path)
 from api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
 
 # Percorso del file processed_matrices.json
-FILE_PATH_PROCESSED = 'data/processed_matrices.json'
-FILE_PATH = 'data/matrices.json'
+FILE_PATH_PROCESSED = '../data/processed_matrices.json'
+FILE_PATH = '../data/matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
@@ -170,6 +170,7 @@ def main():
         sim = initialize_simulation()
 
         priority_matrix = get_priority_matrix(FILE_PATH)  # matrice priorità assegnata dalla web-app
+        print(f"Matrice priorità: {priority_matrix}")
 
         terrain = Terrain(sim)
         tessellation_regular, tessellation_voronoi = apply_tessellation(terrain, priority_matrix)
