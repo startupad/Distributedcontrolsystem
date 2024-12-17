@@ -107,8 +107,8 @@ class FlyController:
 
         diff = np.linalg.norm(self.matrix_interdrones_distance - self.matrix_norm)
         if diff < tolerance:
-            logging.info("Convergence has been already reached")
-            logging.info(f"Actual inter-drones distances = norm matrix: {self.matrix_norm}")
+            # logging.info("Convergence has been already reached")
+            # logging.info(f"Actual inter-drones distances = norm matrix: {self.matrix_norm}")
             return np.round(self.matrix_drone_config, 5).tolist()
         else:
             # logging.info(f"Lap: \n {self.matrix_laplacian}")

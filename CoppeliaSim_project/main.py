@@ -109,16 +109,15 @@ def run_simulation(sim, s_path, drones, fc):
         # Set a new target for the drone leader
         drones[0].calculate_new_path(center)
 
-        iter_n = 0
+
         drone_reached = False
         while not drone_reached:
             drone_reached = True
-            iter_n += 1
-            print(iter_n)
 
             # standard coppelia sim frame steps are 50ms long, but we need it to be at most 1.5ms
             step = (sim.getSimulationTime() - prev_time) / 34
-            print("step size: ", step)
+            logging.info(f"step size:  \n {step}")
+
             if step > 0.0015:
                 step = 0.0015
             prev_time = sim.getSimulationTime()
