@@ -16,7 +16,7 @@ class FlyController:
         self.sim = sim
         self.drones_list = drones_list
         self.n_drones = len(drones_list)
-        self.dist_max = 10
+        self.dist_max = 17
 
         self.initialize_matrices()
 
@@ -64,6 +64,14 @@ class FlyController:
     def compute_laplacian_matrix(self):
         """Compute the Laplacian matrix."""
         self.matrix_laplacian = self.matrix_delta - self.matrix_adj
+
+        # scale the laplacian matriz to have its eigenvalues between 2 desired values
+        # convergence speed is directly proportional to the min eigenvalue value
+        min_eig = -0.1 * 10 ** (-5)
+        max_eig = -min_eig
+        matrix_lap_scaled = (self.matrix_laplacian - ((max_eig - min_eig) / 2 * np.identity(3))) / (
+                    (max_eig - min_eig) / 2)
+        self.matrix_laplacian = matrix_lap_scaled
 
     def compute_drone_actual_config_matrix(self):
         """Compute the actual configuration matrix of the drones."""
