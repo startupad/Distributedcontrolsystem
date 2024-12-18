@@ -23,6 +23,9 @@ FILE_PATH = os.path.abspath(FILE_PATH)  # Assicurati che il percorso sia assolut
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
+TEXTURE_PATH = os.path.join(BASE_DIR, 'web-app', 'texture.png')
+TEXTURE_PATH = os.path.abspath(TEXTURE_PATH)  # Assicurati che il percorso sia assoluto
+
 file_lock = threading.Lock()
 
 # Stato per controllare l'esecuzione della simulazione
@@ -128,6 +131,7 @@ def get_processed_matrix():
 def get_texture():
     """Endpoint per restituire l'immagine texture.png."""
     texture_path = os.path.join(BASE_DIR, 'texture.png')
+    print(texture_path)
     
     # Verifica che il file esista prima di tentare di inviarlo
     if os.path.exists(texture_path):

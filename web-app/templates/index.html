@@ -291,20 +291,90 @@
       </h1>
 
       <!-- Step 1: Field Priority Configuration -->
+      <!-- Contenitore flessibile per griglia e legenda -->
       <div id="step-1" class="step active">
         <h2>Set the desired drone altitude for each area</h2>
-        <div id="grid" class="grid"></div>
+        <div
+          class="grid-legend-container"
+          style="
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            position: relative; /* Necessario per posizionare elementi assoluti */
+          "
+        >
+          <!-- Griglia -->
+          <div id="grid" class="grid" style="position: relative">
+            <!-- Freccia -->
+            <div
+              class="arrow"
+              style="
+                position: absolute;
+                left: -90px; /* Allineata rispetto alla griglia */
+                bottom: -70px; /* Posizionata sotto il primo blocco */
+                text-align: center; /* Centrare testo e freccia */
+                font-size: 1em; /* Dimensione del testo */
+                color: #333; /* Colore del testo e freccia */
+              "
+            >
+              <span style="font-size: 2em; display: block; color: #000000"
+                >⬆</span
+              >
+              <span
+                style="
+                  font-size: 1em;
+                  color: #333;
+                  font-weight: 500;
+                  margin-top: 5px;
+                  display: block;
+                "
+              >
+                Drones will join the field from here
+              </span>
+            </div>
+          </div>
 
-        <div style="text-align: center; margin-bottom: 20px">
-          <span style="color: red; font-weight: 700">Low Level </span>means High
-          precision<br />
-          <span style="color: #d8c70c; font-weight: 700">Medium Level </span
-          >means Medium precision<br />
-          <span style="color: green; font-weight: 700">High Level </span>means
-          Low precision <br />
+          <!-- Legenda -->
+          <div
+            class="legend-container"
+            style="
+              text-align: center;
+              padding: 15px;
+              border: 1px solid #ccc;
+              border-radius: 8px;
+              background-color: #f9f9f9;
+              max-width: 500px;
+            "
+          >
+            <img
+              src="static/altitude_drones.png"
+              alt="Drone altitudes legend"
+              style="max-width: 100%; margin-bottom: 15px"
+            />
+            <div class="legend-text">
+              <p>
+                <span style="color: green; font-weight: 700">Low Level</span>:
+                High precision
+              </p>
+              <p>
+                <span style="color: #d8c70c; font-weight: 700"
+                  >Medium Level</span
+                >: Medium precision
+              </p>
+              <p>
+                <span style="color: red; font-weight: 700">High Level</span>:
+                Low precision
+              </p>
+            </div>
+          </div>
         </div>
-
-        <button class="btn-save" onclick="savePriorities()">
+        <button
+          class="btn-save"
+          onclick="savePriorities()"
+          style="display: block; margin: 20px auto"
+        >
           Save Priorities and Launch Drones
         </button>
       </div>
@@ -382,9 +452,9 @@
           </div>
         </div>
 
-        <button class="btn-next" onclick="nextStep()">
+        <!-- <button class="btn-next" onclick="nextStep()">
           Deploy Tractors and Plan Treatment
-        </button>
+        </button> -->
       </div>
 
       <!-- Step 3: Confirmation and Validation -->
@@ -422,7 +492,7 @@
 
       // Generate the initial priority grid
       // Mappa valori numerici a testi e colori
-      const priorityText = { 1: "Low", 2: "Medium", 3: "High" }; // Aggiornati i testi
+      const priorityText = { 1: "High", 2: "Medium", 3: "Low" }; // Aggiornati i testi
       const priorityColors = { 1: "#cf4646", 2: "#FFC107", 3: "green" };
 
       // Generazione della griglia
@@ -615,7 +685,11 @@
 
                       // Determina il colore e il bordo in base alla priorità
                       const priority = matrix[rowIndex][colIndex]; // Ottieni il valore della priorità dalla griglia iniziale
-                      const priorityText = { 1: "Low", 2: "Medium", 3: "High" };
+                      const priorityText = {
+                        1: "Critical",
+                        2: "Moderate",
+                        3: "Good",
+                      };
                       const priorityColors = {
                         1: "#cf4646",
                         2: "#FFC107",
@@ -630,7 +704,7 @@
                       // Imposta il colore di sfondo e il bordo in base alla priorità
                       block.style.backgroundColor = priorityColors[priority];
                       block.style.border = `3px solid ${priorityBorders[priority]}`;
-                      block.textContent = priorityText[priority];
+                      // block.textContent = priorityText[priority];
 
                       matrixContainer.appendChild(block);
                     });

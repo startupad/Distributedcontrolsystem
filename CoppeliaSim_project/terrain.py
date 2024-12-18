@@ -76,7 +76,7 @@ class Terrain:
         # Create a primitive texture shape (small plane)
         # Ensure absolute path
         path = os.path.abspath("texture.png")
-        print("Absolute path to texture:", path)
+        #print("Absolute path to texture:", path)
 
         shape, self.texture_id, res = self.sim.createTexture(path, 2, [1, 1], [2, 2], [0, 0, 0], 128, None)
 

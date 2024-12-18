@@ -177,17 +177,15 @@ def run_simulation(sim, s_path, drones, fc):
 
 
 def main():
-    """Main function to run the simulation."""
     try:
         sim = initialize_simulation()
 
-        priority_matrix = get_priority_matrix(FILE_PATH)  # matrice priorità assegnata dalla web-app
-        print(f"Matrice priorità: {priority_matrix}")
+        priority_matrix = get_priority_matrix(FILE_PATH) 
 
         terrain = Terrain(sim)
         tessellation_regular, tessellation_voronoi = apply_tessellation(terrain, priority_matrix)
 
-        # Variabile per decidere il tipo di tassellazione
+        # Decide which type of tassellation to use
         tessellation = tessellation_regular
 
         width = terrain.get_dimensions()[0]
@@ -196,14 +194,13 @@ def main():
         drones = initialize_drones(sim, N_DRONES)
         fc = FlyController(sim, drones)
 
-        sim.step()  # Perform the first simulation step
+        sim.step()
 
-        # Run the simulation with plotting
+        # Run the simulation
         run_simulation(sim, s_path, drones, fc)
 
         sim.stopSimulation()
-        logging.info("Simulation ended")
-
+        
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
