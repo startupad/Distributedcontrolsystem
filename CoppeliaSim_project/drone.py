@@ -67,8 +67,9 @@ class Drone:
 
         self.posAlongPath += self.velocity * t_step
 
-        config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
-
+        #config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath)
+        config = self.sim.getPathInterpolatedConfig(self.path, self.pathLengths, self.posAlongPath, {'type': 'quadraticBezier', 'strength': 1.0,'forceOpen': False})
+        
         if config:
             if len(config) >= 3:
                 self.sim.setObjectPosition(self.target_handle, config[0:3], self.sim.handle_world)
