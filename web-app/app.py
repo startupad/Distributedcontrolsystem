@@ -127,7 +127,7 @@ def get_processed_matrix():
 @app.route('/get-texture', methods=['GET'])
 def get_texture():
     """Endpoint per restituire l'immagine texture.png."""
-    texture_path = os.path.join(BASE_DIR, '..', 'texture.png')
+    texture_path = os.path.join(BASE_DIR, 'texture.png')
     
     # Verifica che il file esista prima di tentare di inviarlo
     if os.path.exists(texture_path):

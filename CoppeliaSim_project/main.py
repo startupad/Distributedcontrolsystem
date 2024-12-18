@@ -19,8 +19,11 @@ sys.path.append(web_app_path)
 from api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
 
 # Percorso del file processed_matrices.json
-FILE_PATH_PROCESSED = 'data/processed_matrices.json'
-FILE_PATH = 'data/matrices.json'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'web-app'
+FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
+FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
+
+FILE_PATH = '../data/matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
@@ -144,10 +147,19 @@ def run_simulation(sim, s_path, drones, fc):
                 target_coordinate_1 = [float(coord) for coord in center[:3]]
                 target_coordinate_2 = [float(coord) for coord in out[1][:3]]
                 target_coordinate_3 = [float(coord) for coord in out[2][:3]]
-                set_coordinates(target_coordinate_1, target_coordinate_2, target_coordinate_3)
 
-
-
+                # Check if the values of target_coordinate_2 and target_coordinate_3 are within ±1 of target_coordinate_1
+                if all(abs(t2 - t1) <= 0.5 for t1, t2 in zip(target_coordinate_1, target_coordinate_2)) and \
+                all(abs(t3 - t1) <= 0.5 for t1, t3 in zip(target_coordinate_1, target_coordinate_3)):
+                    # If the condition is met, use the given target coordinates
+                    set_coordinates(target_coordinate_1, target_coordinate_2, target_coordinate_3)
+                else:
+                    # If not, adjust target_coordinate_2 and target_coordinate_3 to target_coordinate_1 ± 1
+                    adjusted_target_coordinate_2 = [t1 - 0.5 for t1 in target_coordinate_1]
+                    adjusted_target_coordinate_3 = [t1 + 0.5 for t1 in target_coordinate_1]
+                    
+                    # Call set_coordinates with adjusted coordinates
+                    set_coordinates(target_coordinate_1, adjusted_target_coordinate_2, adjusted_target_coordinate_3)
             if not drones[0].has_reached_target():
                 drone_reached = False
             sim.step()

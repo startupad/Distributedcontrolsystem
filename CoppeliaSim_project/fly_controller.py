@@ -108,7 +108,9 @@ class FlyController:
         z_drone_leader = self.matrix_drone_config[0, 2]
         # Slicing the matrix, selecting all rows and all columns starting from the third column (excluding X and Y)
         extra = self.matrix_drone_config[:, 2:]
+        
         extra[:, 0] = z_drone_leader
+        # print('colonna Z',extra[:, 0])
         # Slicing the drone matrix at the first 2 columns such that the formation can work only on the plane X,Y
         self.matrix_drone_config = self.matrix_drone_config[:, :2]
 

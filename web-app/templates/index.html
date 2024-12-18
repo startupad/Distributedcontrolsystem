@@ -37,7 +37,7 @@
         content: "";
         width: 60px;
         height: 3px;
-        background: #4caf50;
+        background: #5c79be;
         display: block;
         margin: 10px auto 0;
         border-radius: 2px;
@@ -270,21 +270,38 @@
         margin-top: 20px;
       }
     </style>
+    <style>
+      .gradient-text {
+        background: linear-gradient(
+          to right,
+          #484ac5,
+          #539fba
+        ); /* Verde a giallo-arancione */
+        -webkit-background-clip: text; /* Usa il gradiente come clip del testo */
+        color: transparent; /* Imposta il colore del testo come trasparente */
+        font-weight: bold; /* Imposta il grassetto per un effetto migliore */
+        font-size: 1.5em; /* Aggiusta la dimensione del font come preferisci */
+      }
+    </style>
   </head>
   <body>
     <div class="container">
-      <h1>Autonomous Field Management Interface</h1>
+      <h1>
+        <span class="gradient-text">AgriFly</span> | Drone Management for Fields
+      </h1>
 
       <!-- Step 1: Field Priority Configuration -->
       <div id="step-1" class="step active">
-        <h2>Field Priority Configuration</h2>
-        <p>Select the priority level for each field area.</p>
+        <h2>Set the desired drone altitude for each area</h2>
         <div id="grid" class="grid"></div>
 
         <div style="text-align: center; margin-bottom: 20px">
-          <span style="color: #1b5e20; font-weight: 700">Priority 1</span>,
-          <span style="color: #333; font-weight: 700">Priority 2</span>,
-          <span style="color: #d44343; font-weight: 700">Priority 3</span>
+          <span style="color: red; font-weight: 700">Low Level </span>means High
+          precision<br />
+          <span style="color: #d8c70c; font-weight: 700">Medium Level </span
+          >means Medium precision<br />
+          <span style="color: green; font-weight: 700">High Level </span>means
+          Low precision <br />
         </div>
 
         <button class="btn-save" onclick="savePriorities()">
@@ -404,18 +421,24 @@
       let plot2DInitialized = false;
 
       // Generate the initial priority grid
+      // Mappa valori numerici a testi e colori
+      const priorityText = { 1: "Low", 2: "Medium", 3: "High" }; // Aggiornati i testi
+      const priorityColors = { 1: "#cf4646", 2: "#FFC107", 3: "green" };
+
+      // Generazione della griglia
       for (let i = 0; i < 6; i++) {
         for (let j = 0; j < 6; j++) {
           const block = document.createElement("div");
-          block.classList.add("block", "priority-1");
-          block.textContent = "1";
+          block.classList.add("block");
+          block.style.backgroundColor = priorityColors[1]; // Colore iniziale verde (1)
+          block.textContent = priorityText[1]; // Testo iniziale "Low"
 
           block.addEventListener("click", () => {
-            let currentPriority = parseInt(block.textContent);
-            let newPriority = (currentPriority % 3) + 1;
-            block.textContent = newPriority;
-            block.className = "block priority-" + newPriority;
-            matrix[i][j] = newPriority;
+            let currentPriority = matrix[i][j]; // Valore numerico attuale
+            let newPriority = (currentPriority % 3) + 1; // Calcola nuovo valore numerico
+            matrix[i][j] = newPriority; // Aggiorna la matrice
+            block.textContent = priorityText[newPriority]; // Aggiorna testo visibile
+            block.style.backgroundColor = priorityColors[newPriority]; // Cambia colore
           });
 
           grid.appendChild(block);
@@ -455,7 +478,7 @@
 
       document.addEventListener("DOMContentLoaded", function () {
         const loadingElement = document.getElementById("loading");
-        const delay = 500;
+        const delay = 1000;
 
         function updateDroneCoords(xs, ys, zs) {
           document.getElementById("p1x").textContent = xs[0].toFixed(2);
@@ -534,7 +557,7 @@
             scene: {
               xaxis: { title: "X", range: [0, 7] },
               yaxis: { title: "Y", range: [0, 7] },
-              zaxis: { title: "Z", range: [0, 2] },
+              zaxis: { title: "Z", range: [0, 6] },
             },
           };
 
@@ -584,11 +607,31 @@
                   matrixContainer.style.display = "grid";
                   matrixContainer.innerHTML = "";
 
-                  data.forEach((row) => {
-                    row.forEach((value) => {
+                  data.forEach((row, rowIndex) => {
+                    row.forEach((value, colIndex) => {
                       const block = document.createElement("div");
                       block.classList.add("block", "priority-" + value);
                       block.textContent = value;
+
+                      // Determina il colore e il bordo in base alla priorità
+                      const priority = matrix[rowIndex][colIndex]; // Ottieni il valore della priorità dalla griglia iniziale
+                      const priorityText = { 1: "Low", 2: "Medium", 3: "High" };
+                      const priorityColors = {
+                        1: "#cf4646",
+                        2: "#FFC107",
+                        3: "green",
+                      };
+                      const priorityBorders = {
+                        1: "red",
+                        2: "#d8c70c",
+                        3: "green",
+                      };
+
+                      // Imposta il colore di sfondo e il bordo in base alla priorità
+                      block.style.backgroundColor = priorityColors[priority];
+                      block.style.border = `3px solid ${priorityBorders[priority]}`;
+                      block.textContent = priorityText[priority];
+
                       matrixContainer.appendChild(block);
                     });
                   });
@@ -603,7 +646,6 @@
               setTimeout(fetchMatrix, delay);
             });
         }
-
         fetchMatrix();
       });
 
