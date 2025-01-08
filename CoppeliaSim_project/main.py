@@ -11,19 +11,24 @@ from config import TOLERANCE, GRID_SIZE, N_DRONES
 import sys
 import os
 
-# Aggiungi il percorso della cartella 'web-app' a sys.path
-web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web-app/'))
+# Aggiungi il percorso della cartella 'WebApp' a sys.path
+web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../WebApp/'))
 sys.path.append(web_app_path)
 
-# Ora puoi importare 'app' dalla cartella 'web-app'
-from api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
+# Aggiungi il percorso della cartella 'CoppeliaSim_project' a sys.path
+coppelia_sim_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '.'))
+sys.path.append(coppelia_sim_path)
+
+# Ora puoi importare 'app' dalla cartella 'WebApp'
+from WebApp.api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
 
 # Percorso del file processed_matrices.json
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'web-app'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'WebApp'
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
-FILE_PATH = '../data/matrices.json'
+FILE_PATH = 'data/matrices.json'
+processed_matrix_path='data/processed_matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
@@ -66,6 +71,35 @@ def initialize_drones(sim, n_drones):
         drone = Drone(sim, drone_id=str(i + 1), starting_config=initial_config[i])
         drones.append(drone)
     return drones
+
+def load_processed_matrix(file_path):
+    """Carica la matrice dal file specificato."""
+    with open(file_path, 'r') as f:
+        matrix = json.load(f)
+    return matrix
+
+def find_value_coordinates(matrix, value):
+    """Trova le coordinate delle caselle con il valore specificato."""
+    coordinates = []
+    for i, row in enumerate(matrix):
+        for j, cell in enumerate(row):
+            if cell == value:
+                coordinates.append((i, j))
+    return coordinates
+
+def create_straight_path(coordinates):
+    """Crea un percorso che attraversi tutte le coordinate con una linea retta."""
+    if not coordinates:
+        return []
+
+    # Ordina le coordinate per riga e poi per colonna
+    coordinates.sort()
+
+    # Crea un percorso che collega tutte le coordinate in modo sequenziale
+    path = [coordinates[0]]
+    for coord in coordinates[1:]:
+        path.append(coord)
+    return path
 
 
 def run_simulation(sim, s_path, drones, fc):
@@ -198,6 +232,10 @@ def main():
 
         # Run the simulation
         run_simulation(sim, s_path, drones, fc)
+
+        matrix = load_processed_matrix(processed_matrix_path)
+        coordinates = find_value_coordinates(matrix, 3)
+        path = create_straight_path(coordinates)
 
         sim.stopSimulation()
         
