@@ -210,6 +210,16 @@ def print_grid():
     global grid
     return grid
 
+def shutdown(sim):
+    """Gracefully shut down the simulation and stop the drones."""
+    try:
+        # Stop the simulation
+        sim.stopSimulation()
+        logging.info("Simulation stopped successfully.")
+        
+    except Exception as e:
+        logging.error(f"An error occurred during shutdown: {e}")
+
 
 if __name__ == "__main__":
     main()

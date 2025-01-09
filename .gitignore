@@ -1,4 +1,6 @@
 .idea
 /texture.png
 /data/
-CoppeliaSim_project/__pycache__/
+CoppeliaSim_project/__pycache__/*
+CoppeliaSim_project/__pycache__/drone.cpython-312.pyc
+CoppeliaSim_project/__pycache__/main.cpython-312.pyc
