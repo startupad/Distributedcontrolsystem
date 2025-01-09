@@ -1,0 +1,237 @@
+.emergency-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.9
+  ); /* White background with slight transparency */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1000; /* Make sure it's on top */
+}
+
+.loading-container {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.loading-text {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+}
+
+.loading-description {
+  font-size: 1em;
+  color: #666;
+  margin-top: 10px;
+}
+
+.cancel-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #ff4d4d; /* Red color for cancellation */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background-color: #ff1a1a; /* Darker red when hovered */
+}
+
+/* Sub-navbar styles */
+.sub-navbar {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px; /* Spacing between buttons */
+  margin-bottom: 20px; /* Space between the sub-navbar and main content */
+  padding: 10px; /* Padding around the navbar */
+  border-radius: 8px; /* Rounded corners for the navbar */
+}
+
+.sub-navbar-btn {
+  color: white; /* White text */
+  padding: 10px 20px; /* Padding inside buttons */
+  border: none; /* No borders */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Change cursor to pointer */
+  transition: background-color 0.3s ease; /* Smooth background color transition */
+}
+
+.sub-navbar-btn:hover {
+  background-color: #45a049; /* Darker green when hovering */
+}
+
+.sub-navbar-btn:active {
+  background-color: #387039; /* Even darker green when clicked */
+}
+
+/* Optional styles for the button container */
+.button-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+
+.btn-back {
+  background-color: #008cba;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-next {
+  background-color: #008cba;
+  color: white;
+}
+
+.btn-back:hover {
+  background-color: #007a8c;
+}
+
+.btn-back:active {
+  background-color: #006673;
+}
+/* Flexbox container to position the graphs side by side */
+/* Flexbox container to position the graphs side by side */
+.simulation-container {
+  display: flex;
+  justify-content: space-between; /* Space out the 2D and 3D sections */
+  gap: 3px; /* Add space between the sections */
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* Allow wrapping for responsiveness */
+  flex-direction: row; /* Align 2D and 3D plots side by side */
+  justify-content: center; /* Center the plots */
+}
+
+/* Each section within the container (2D and 3D plots) */
+.simulation-item {
+  flex: 1; /* Allow items to expand equally */
+  padding: 2px;
+  max-width: 800px; /* Limit the width to prevent overflowing */
+  width: 100%; /* Full width for responsiveness */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  text-align: center;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent overflow */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Titles for the sections */
+.simulation-item h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+/* Description text for each section */
+.simulation-item p {
+  font-size: 1em;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+/* Styling for the table */
+#drone-coords-container {
+  margin-top: 20px;
+  text-align: center;
+  width: 100%; /* Ensure table occupies full container width */
+}
+
+/* Table for drone coordinates */
+#drone-coords {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+/* Table headers */
+#drone-coords th,
+#drone-coords td {
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+/* Table header styling */
+#drone-coords th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+/* 2D and 3D Plot Styles */
+#plot3d,
+#plot2d {
+  width: 100%; /* Full width within its container */
+  height: auto; /* Adjust height to maintain aspect ratio */
+  max-width: 400px; /* Ensure the plot doesn't exceed container's width */
+  max-height: 400px; /* Limit the height for better display */
+  margin: 0 auto; /* Center the plots */
+  display: block; /* Ensure the plots are block-level elements */
+  box-sizing: border-box; /* Prevent overflow and ensure proper sizing */
+  object-fit: contain; /* Ensures the plot fits within the container without distortion */
+}
+
+/* Add media queries to handle responsiveness on smaller screens */
+@media (max-width: 768px) {
+  .simulation-container {
+    flex-direction: column; /* Stack the 2D and 3D sections vertically on small screens */
+    align-items: center; /* Center the items */
+  }
+
+  #plot3d,
+  #plot2d {
+    width: 90%; /* Adjust width for smaller screens */
+    height: 250px; /* Reduce height for better mobile fit */
+  }
+}
+
+/* Simple spinner style */
+.spinner {
+  border: 4px solid #f3f3f3; /* Light gray background */
+  border-top: 4px solid #3498db; /* Blue color for the spinner */
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: 5px;
+  animation: spin 2s linear infinite;
+}
+
+/* Animation for spinning effect */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Styling for the status message */
+#status-message {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+#status-message #status-text {
+  margin-left: 5px;
+  font-weight: bold;
+}

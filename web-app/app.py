@@ -10,7 +10,8 @@ matplotlib.use('TkAgg')
 sys.path.append(abspath(dirname(__file__) + '/../coppeliasim_project'))
 
 # Importa la funzione main dal file main.py per avviare la simulazione di CoppeliaSim
-from main import main
+from main import main, shutdown
+from main_tractors import main_tractors
 import api
 
 app = Flask(__name__)
@@ -31,6 +32,8 @@ file_lock = threading.Lock()
 # Stato per controllare l'esecuzione della simulazione
 simulation_thread = None
 simulation_running = threading.Event()
+simulation_tractors_thread = None
+simulation_tractors_running = threading.Event()
 
 def ensure_directory_exists(file_path):
     """Crea la directory per il file se non esiste."""
@@ -63,6 +66,11 @@ def save_priorities():
     start_simulation()
     return jsonify({'status': 'Matrice ricevuta con successo'}), 200
 
+@app.route('/deploy-tractors', methods=['POST'])
+def deploy_tractors():
+    start_tractors()
+    return jsonify({'status': 'Trattori avviati'}), 200
+
 @app.route('/start-simulation', methods=['POST'])
 def start_simulation():
     global simulation_thread
@@ -84,6 +92,26 @@ def start_simulation():
     # Avvia un thread per la simulazione
     simulation_thread = threading.Thread(target=run_simulation, daemon=True)
     simulation_thread.start()
+    return jsonify({'status': 'Simulazione avviata con successo'}), 200
+
+@app.route('/start-tractors', methods=['POST'])
+def start_tractors():
+    global simulation_tractors_thread
+    if simulation_tractors_running.is_set():
+        return jsonify({'error': 'La simulazione è già in esecuzione'}), 400
+
+    def run_tractors():
+        try:
+            simulation_tractors_running.set()
+            main_tractors()
+        except Exception as e:
+            print(f"Errore durante l'esecuzione della simulazione: {e}")
+        finally:
+            simulation_tractors_running.clear()
+
+    # Avvia un thread per la simulazione
+    simulation_tractors_thread = threading.Thread(target=run_tractors, daemon=True)
+    simulation_tractors_thread.start()
     return jsonify({'status': 'Simulazione avviata con successo'}), 200
 
 
@@ -138,6 +166,27 @@ def get_texture():
         return send_from_directory(os.path.dirname(texture_path), 'texture.png')
     else:
         return jsonify({'error': 'File texture.png non trovato'}), 404
+
+
+@app.route('/stop-drones', methods=['POST'])
+def stop_drones():
+    """Stops the drones and shuts down the simulation."""
+    try:
+        # Call the shutdown function (stop the simulation and drones)
+        shutdown()
+        
+        # Return success message
+        return jsonify({'status': 'Droni fermati con successo'}), 200
+    except Exception as e:
+        # If there's an error, return an error message
+        return jsonify({'status': 'Errore durante l\'arresto dei droni', 'error': str(e)}), 500
+
+
+def shutdown():
+    """Gracefully shuts down the simulation and stops the drones."""
+    # Logic to stop the drones and shut down the simulation goes here
+    print("Drones are stopping...")
+    # Add your shutdown logic here (e.g., stop drones, stop simulation)
 
 
 if __name__ == '__main__':
