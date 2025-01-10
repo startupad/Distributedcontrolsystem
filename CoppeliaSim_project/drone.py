@@ -113,3 +113,10 @@ class Drone:
         # Check if the drone is close enough to the target position
         distance = np.linalg.norm(np.array(current_pos) - np.array(target_pos))
         return distance < TOLERANCE
+    
+    def stop(self):
+        """Stop the drone's operation (e.g., halt movement)."""
+        # Stop any movement or other operations
+        logging.info(f"Drone {self.drone_id} has been stopped.")
+        # You can use a specific function or command to halt the drone in the simulation
+        # e.g., self.sim.stop_movement(self.drone_id)

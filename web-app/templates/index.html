@@ -5,12 +5,66 @@
     <title>Autonomous Field Management Interface</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="static/style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background-color: #ffffff;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .navbar-title {
+        font-size: 1rem;
+        color: #333;
+        font-weight: bold;
+      }
+
+      .status {
+        font-size: 0.9rem;
+        font-weight: bold;
+      }
+
+      .navbar-left,
+      .navbar-center,
+      .navbar-right {
+        display: flex;
+        align-items: center;
+      }
+
+      .emergency-exit {
+        background-color: #ff4d4d;
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+      }
+
+      .emergency-exit:hover {
+        background-color: #ff1a1a;
+      }
+
+      .navbar-center {
+        text-align: center;
+      }
+
+      .navbar-center .status {
+        text-transform: uppercase;
+      }
+
       body {
         font-family: "Roboto", sans-serif;
         background: #f5f5f5;
@@ -62,6 +116,68 @@
         margin-bottom: 20px;
       }
 
+      .drone-status {
+        opacity: 1;
+        transition: opacity 0.4s ease-in-out;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        font-family: Arial, sans-serif;
+      }
+
+      .status-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        align-items: center;
+      }
+
+      .status-label {
+        font-weight: bold;
+        color: #333;
+      }
+
+      .status {
+        color: #4caf50; /* Green for active */
+        font-weight: bold;
+        margin-right: 10px;
+      }
+
+      .battery-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .battery {
+        font-weight: bold;
+        color: #ff9800; /* Orange for battery percentage */
+      }
+
+      .alert {
+        display: none; /* Hidden by default */
+        margin-left: 10px;
+      }
+
+      .alert.active {
+        display: inline; /* Show when there's an alert */
+      }
+
+      /* Battery indicator color coding */
+      .battery-level-critical {
+        color: #ff4646; /* Red for low battery */
+      }
+
+      .battery-level-warning {
+        color: #ffc107; /* Yellow for medium battery */
+      }
+
+      .battery-level-good {
+        color: #4caf50; /* Green for good battery */
+      }
+
       .step.active {
         display: block;
         opacity: 1;
@@ -74,6 +190,7 @@
         gap: 8px;
         justify-content: center;
         margin: 0 auto 20px auto;
+        position: relative; /* Ensure position relative for the tooltip */
       }
 
       .block {
@@ -157,15 +274,6 @@
         background: #43a047;
       }
 
-      .btn-next {
-        background: #2196f3;
-        color: #fff;
-      }
-
-      .btn-next:hover {
-        background: #1e88e5;
-      }
-
       .btn-back {
         background: #9e9e9e;
         color: #fff;
@@ -173,6 +281,15 @@
 
       .btn-back:hover {
         background: #757575;
+      }
+
+      .btn-stop {
+        background: #ff0000;
+        color: #fff;
+      }
+
+      .btn-stop:hover {
+        background: #840e0e;
       }
 
       .btn-confirm {
@@ -192,21 +309,6 @@
       #error-message {
         color: red;
         margin-top: 20px;
-      }
-
-      .comparison-container,
-      .simulation-container {
-        display: flex;
-        align-items: flex-start;
-        gap: 40px;
-        margin-bottom: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-
-      .simulation-container {
-        flex-direction: column;
-        align-items: center;
       }
 
       .comparison-container {
@@ -240,14 +342,6 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       }
-
-      #plot3d,
-      #plot2d {
-        width: 600px;
-        height: 500px;
-        margin: 0 auto;
-      }
-
       #drone-coords {
         margin: 20px auto;
         border-collapse: collapse;
@@ -270,29 +364,101 @@
         margin-top: 20px;
       }
     </style>
-    <style>
-      .gradient-text {
-        background: linear-gradient(
-          to right,
-          #484ac5,
-          #539fba
-        ); /* Verde a giallo-arancione */
-        -webkit-background-clip: text; /* Usa il gradiente come clip del testo */
-        color: transparent; /* Imposta il colore del testo come trasparente */
-        font-weight: bold; /* Imposta il grassetto per un effetto migliore */
-        font-size: 1.5em; /* Aggiusta la dimensione del font come preferisci */
-      }
-    </style>
   </head>
   <body>
-    <div class="container">
-      <h1>
-        <span class="gradient-text">AgriFly</span> | Drone Management for Fields
-      </h1>
+    <nav class="navbar">
+      <div class="navbar-left">
+        <span class="navbar-title">AgriFly</span>
+      </div>
 
+      <div class="navbar-right">
+        <button class="emergency-exit" onclick="handleEmergency()">
+          Emergency Exit
+        </button>
+      </div>
+    </nav>
+
+    <!-- Emergency Exit Screen (Initially hidden) -->
+    <div id="emergency-overlay" class="emergency-overlay" style="display: none">
+      <div class="loading-container">
+        <p class="loading-text">The drones are returning home...</p>
+        <p class="loading-description">
+          Once the drones are home, you can exit the application.
+        </p>
+        <button class="cancel-button" onclick="cancelEmergency()">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function handleEmergency() {
+        // Show the emergency overlay screen
+        const overlay = document.getElementById("emergency-overlay");
+        overlay.style.display = "flex"; // Make it visible
+      }
+
+      function cancelEmergency() {
+        // Hide the emergency overlay screen and return to homepage
+        const overlay = document.getElementById("emergency-overlay");
+        overlay.style.display = "none";
+        alert("Emergency operation cancelled. Returning to the home page.");
+
+        window.location.href = ""; // Go back to the homepage
+      }
+    </script>
+
+    <div class="container">
       <!-- Step 1: Field Priority Configuration -->
       <!-- Contenitore flessibile per griglia e legenda -->
+      <div class="drone-status">
+        <div class="status-container">
+          <span class="status-label">Drone 1 Status:</span>
+          <span id="drone1-status" class="status">Active</span>
+          <!-- Dynamic Status for Drone 1 -->
+          <div class="battery-container">
+            <span class="battery" id="drone1-battery">85%</span>
+            <!-- Dynamic Battery Level for Drone 1 -->
+          </div>
+          <span id="drone1-alert" class="alert">No Issues</span>
+          <!-- Alert for Drone 1 -->
+        </div>
+
+        <div class="status-container">
+          <span class="status-label">Drone 2 Status:</span>
+          <span id="drone2-status" class="status">Active</span>
+          <!-- Dynamic Status for Drone 2 -->
+          <div class="battery-container">
+            <span class="battery" id="drone2-battery">90%</span>
+            <!-- Dynamic Battery Level for Drone 2 -->
+          </div>
+          <span id="drone2-alert" class="alert">No Issues</span>
+          <!-- Alert for Drone 2 -->
+        </div>
+
+        <div class="status-container">
+          <span class="status-label">Drone 3 Status:</span>
+          <span id="drone3-status" class="status">Active</span>
+          <!-- Dynamic Status for Drone 3 -->
+          <div class="battery-container">
+            <span class="battery" id="drone3-battery">75%</span>
+            <!-- Dynamic Battery Level for Drone 3 -->
+          </div>
+          <span id="drone3-alert" class="alert">No Issues</span>
+          <!-- Alert for Drone 3 -->
+        </div>
+      </div>
+
       <div id="step-1" class="step active">
+        <div class="sub-navbar">
+          <button
+            class="btn-save"
+            onclick="confirmLaunch()"
+            style="display: block; margin: 20px auto"
+          >
+            Save priorities and launch drones
+          </button>
+        </div>
         <h2>Set the desired drone altitude for each area</h2>
         <div
           class="grid-legend-container"
@@ -370,40 +536,57 @@
             </div>
           </div>
         </div>
-        <button
-          class="btn-save"
-          onclick="savePriorities()"
-          style="display: block; margin: 20px auto"
-        >
-          Save Priorities and Launch Drones
-        </button>
       </div>
 
       <!-- Step 2: Drone Data Monitoring -->
       <div id="step-2" class="step">
-        <h2>Drone Data Monitoring</h2>
-        <p>Review the drone positions and field data.</p>
+        <div class="sub-navbar">
+          <button id="prev-btn" class="btn-back" onclick="prevStep()" disabled>
+            Back
+          </button>
+
+          <button id="stop-btn" class="btn-stop" onclick="confirmStopDrones()">
+            Stop drones
+          </button>
+
+          <button
+            class="btn-next"
+            onclick="deployTractors()"
+            title="Function won't work until drones have finished their task"
+          >
+            Deploy tractors and plan treatment
+          </button>
+
+          <!-- Status message and loading spinner -->
+          <div id="status-message" style="display: none">
+            Drones status:
+            <span id="status-text"> Analyzing...</span>
+            <div id="loading-spinner" class="spinner"></div>
+          </div>
+        </div>
 
         <div id="loading" class="loading">Loading data...</div>
 
+        <!-- Simulation Container: 2D & 3D Graphs + Table -->
         <!-- Simulation Container: 2D & 3D Graphs + Table -->
         <div
           class="simulation-container"
           id="simulation-container"
           style="display: none"
         >
+          <!-- 2D Drone Positions Section -->
           <div class="simulation-item">
             <h3>2D Drone Positions (X-Y)</h3>
-            <p>Real-time drone locations in a 2D plane.</p>
             <div id="plot2d"></div>
           </div>
 
+          <!-- 3D Drone Positions Section -->
           <div class="simulation-item">
             <h3>3D Drone Positions (X-Y-Z)</h3>
-            <p>Real-time drone locations in three dimensions.</p>
             <div id="plot3d"></div>
           </div>
 
+          <!-- Drone Coordinates Table (Hidden initially) -->
           <div id="drone-coords-container" style="display: none">
             <table id="drone-coords">
               <thead>
@@ -451,10 +634,6 @@
             <div id="processed-matrix" class="grid" style="display: none"></div>
           </div>
         </div>
-
-        <!-- <button class="btn-next" onclick="nextStep()">
-          Deploy Tractors and Plan Treatment
-        </button> -->
       </div>
 
       <!-- Step 3: Confirmation and Validation -->
@@ -463,12 +642,6 @@
         <p>Verify all details and confirm the configuration.</p>
         <button class="btn-confirm" onclick="alert('Configuration Confirmed!')">
           Confirm
-        </button>
-      </div>
-
-      <div class="button-container">
-        <button id="prev-btn" class="btn-back" onclick="prevStep()" disabled>
-          Back
         </button>
       </div>
     </div>
@@ -514,6 +687,58 @@
           grid.appendChild(block);
         }
       }
+      let dronesDeployed = false;
+
+      function confirmLaunch() {
+        const confirmation = confirm(
+          "By confirming, the drones will leave their home position and begin analyzing the terrain."
+        );
+        if (confirmation) {
+          dronesDeployed = true; // Drones have been deployed
+          savePriorities(); // Proceed with the function if confirmed
+        } else {
+          console.log("Launch canceled.");
+        }
+      }
+
+      function deployTractors() {
+        const confirmation = confirm(
+          "By confirming, the tractor will leave its home position and begin treating the terrain."
+        );
+        if (confirmation) {
+          launchTractors(); // Proceed with the function if confirmed
+        } else {
+          console.log("Launch canceled.");
+        }
+      }
+
+      function confirmStopDrones() {
+        // Show a confirmation alert
+        const userConfirmed = confirm(
+          "Clicking 'OK' will stop the drones and send them back immediately. Are you sure?"
+        );
+
+        // If the user confirms, make a POST request to the /stop-drones route
+        if (userConfirmed) {
+          // Sending POST request to stop drones
+          fetch("/stop-drones", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "Droni fermati con successo") {
+                alert("Drones stopped successfully!");
+              }
+            })
+            .catch((error) => {
+              alert("An error occurred while stopping the drones.");
+              console.error("Error:", error);
+            });
+        }
+      }
 
       function savePriorities() {
         fetch("/save-priorities", {
@@ -525,10 +750,28 @@
         })
           .then((response) => {
             if (response.ok) {
-              alert("Priorities saved. Drones launched!");
               nextStep();
             } else {
               showError("Error saving priorities. Please try again.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      function launchTractors() {
+        fetch("/deploy-tractors", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              nextStep();
+            } else {
+              showError("Error deploying Tractors. Please try again.");
             }
           })
           .catch((error) => {
@@ -593,7 +836,6 @@
           }
 
           let layout = {
-            title: "2D Drone Positions (X-Y)",
             xaxis: { title: "X", range: axisRange },
             yaxis: { title: "Y", range: axisRange },
           };
@@ -623,7 +865,6 @@
           }
 
           let layout3D = {
-            title: "3D Drone Positions (X-Y-Z)",
             scene: {
               xaxis: { title: "X", range: [0, 7] },
               yaxis: { title: "Y", range: [0, 7] },
@@ -639,14 +880,34 @@
           }
         }
 
+        function showStatusMessage() {
+          // Show the status message and spinner
+          document.getElementById("status-message").style.display = "flex";
+        }
+
+        function hideStatusMessage() {
+          // Hide the status message and spinner
+          document.getElementById("status-message").style.display = "none";
+        }
+
         function fetchMatrix() {
+          const btnNext = document.querySelector(".btn-next"); // Get the 'Next' button
+
+          // Disable the 'Next' button at the start of the fetch process
+          btnNext.disabled = true;
+
+          // Show status message and spinner when fetching
+          showStatusMessage();
+
           fetch("/get-processed-matrix")
             .then((response) => {
               if (!response.ok) {
                 if (response.status === 400) {
-                  // Simulation still in progress
+                  // Simulation still in progress (keep button disabled)
                   return response.json().then((data) => {
+                    const loadingElement = document.getElementById("loading");
                     loadingElement.style.display = "none";
+
                     const xs = data.points.x;
                     const ys = data.points.y;
                     const zs = data.points.z;
@@ -665,13 +926,47 @@
                     update2DPlot();
                   });
                 } else {
-                  loadingElement.style.display = "block";
-                  return;
+                  // Enable the button and hide the loading message
+
+                  return response.json().then((data) => {
+                    const matrixContainer =
+                      document.getElementById("processed-matrix");
+                    matrixContainer.style.display = "grid";
+                    matrixContainer.innerHTML = "";
+
+                    data.forEach((row, rowIndex) => {
+                      row.forEach((value, colIndex) => {
+                        const block = document.createElement("div");
+                        block.classList.add("block", "priority-" + value);
+                        block.textContent = value;
+
+                        const priority = matrix[rowIndex][colIndex]; // Get priority value from initial matrix
+                        const priorityColors = {
+                          1: "#cf4646",
+                          2: "#FFC107",
+                          3: "green",
+                        };
+                        const priorityBorders = {
+                          1: "red",
+                          2: "#d8c70c",
+                          3: "green",
+                        };
+
+                        block.style.backgroundColor = priorityColors[priority];
+                        block.style.border = `3px solid ${priorityBorders[priority]}`;
+                        matrixContainer.appendChild(block);
+                      });
+                    });
+                  });
                 }
               } else {
-                // Simulation ended, show processed matrix
+                btnNext.disabled = false;
+                hideStatusMessage();
+                // Process the successful response
                 return response.json().then((data) => {
+                  const loadingElement = document.getElementById("loading");
                   loadingElement.style.display = "none";
+
                   const matrixContainer =
                     document.getElementById("processed-matrix");
                   matrixContainer.style.display = "grid";
@@ -683,13 +978,7 @@
                       block.classList.add("block", "priority-" + value);
                       block.textContent = value;
 
-                      // Determina il colore e il bordo in base alla priorità
-                      const priority = matrix[rowIndex][colIndex]; // Ottieni il valore della priorità dalla griglia iniziale
-                      const priorityText = {
-                        1: "Critical",
-                        2: "Moderate",
-                        3: "Good",
-                      };
+                      const priority = matrix[rowIndex][colIndex]; // Get priority value from initial matrix
                       const priorityColors = {
                         1: "#cf4646",
                         2: "#FFC107",
@@ -701,25 +990,29 @@
                         3: "green",
                       };
 
-                      // Imposta il colore di sfondo e il bordo in base alla priorità
                       block.style.backgroundColor = priorityColors[priority];
                       block.style.border = `3px solid ${priorityBorders[priority]}`;
-                      // block.textContent = priorityText[priority];
-
                       matrixContainer.appendChild(block);
                     });
                   });
+
+                  // Hide the status message and enable the button
+                  hideStatusMessage();
+                  btnNext.disabled = false;
                 });
               }
             })
             .catch((error) => {
               console.error("Error loading the matrix:", error);
+              const loadingElement = document.getElementById("loading");
               loadingElement.style.display = "block";
+              hideStatusMessage();
             })
             .finally(() => {
-              setTimeout(fetchMatrix, delay);
+              setTimeout(fetchMatrix, delay); // Retry fetchMatrix after the delay
             });
         }
+
         fetchMatrix();
       });
 
@@ -755,11 +1048,94 @@
       }
 
       function prevStep() {
-        if (currentStep > 1) {
+        // Check if drones have been deployed (you could use a variable or state flag)
+        // For the sake of this example, assume you have a flag like `dronesDeployed` to track the status
+        const dronesDeployed = true; // You would set this flag when drones are launched
+
+        if (dronesDeployed) {
+          const userConfirmation = confirm(
+            "The drones have been deployed. If you want to stop the drones and restart the analysis, please click 'Stop Drones'. Do you still want to go back?"
+          );
+
+          if (userConfirmation) {
+            currentStep--;
+            showStep(currentStep);
+          }
+        } else {
+          // If drones are not deployed, simply go back to the previous step
           currentStep--;
           showStep(currentStep);
         }
       }
+    </script>
+    <script>
+      // Example function to update the status of all 3 drones
+      function updateDroneStatus(
+        droneNumber,
+        status,
+        batteryLevel,
+        alertMessage
+      ) {
+        // Update the status
+        const statusElement = document.getElementById(
+          `drone${droneNumber}-status`
+        );
+        if (status === "active") {
+          statusElement.textContent = "Active";
+          statusElement.style.color = "#4CAF50"; // Green for active
+        } else if (status === "inactive") {
+          statusElement.textContent = "Inactive";
+          statusElement.style.color = "#FFC107"; // Yellow for idle
+        } else if (status === "error") {
+          statusElement.textContent = "Error";
+          statusElement.style.color = "#FF4646"; // Red for error
+        }
+
+        // Update battery level
+        const batteryElement = document.getElementById(
+          `drone${droneNumber}-battery`
+        );
+        batteryElement.textContent = `${batteryLevel}% Battery`;
+
+        // Update battery color
+        if (batteryLevel <= 20) {
+          batteryElement.classList.add("battery-level-critical");
+          batteryElement.classList.remove(
+            "battery-level-warning",
+            "battery-level-good"
+          );
+        } else if (batteryLevel <= 50) {
+          batteryElement.classList.add("battery-level-warning");
+          batteryElement.classList.remove(
+            "battery-level-critical",
+            "battery-level-good"
+          );
+        } else {
+          batteryElement.classList.add("battery-level-good");
+          batteryElement.classList.remove(
+            "battery-level-critical",
+            "battery-level-warning"
+          );
+        }
+
+        // Update alert message
+        const alertElement = document.getElementById(
+          `drone${droneNumber}-alert`
+        );
+        if (alertMessage) {
+          alertElement.textContent = alertMessage;
+          alertElement.classList.add("active");
+        } else {
+          alertElement.textContent = "No Issues";
+          alertElement.classList.remove("active");
+          alertMessage.style.color = "black";
+        }
+      }
+
+      // Example of calling the update function for each drone
+      updateDroneStatus(1, "active", 85, "No Issues"); // Drone 1
+      updateDroneStatus(2, "error", 15, "Low Battery"); // Drone 2
+      updateDroneStatus(3, "inactive", 60, "No Issues"); // Drone 3
     </script>
   </body>
 </html>
