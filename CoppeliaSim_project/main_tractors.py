@@ -2,11 +2,13 @@ from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 import os
 import numpy as np
 import logging
-from config import TOLERANCE
+
 import math
 import matplotlib.pyplot as plt
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+from CoppeliaSim_project.config import TOLERANCE
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class Tractor:

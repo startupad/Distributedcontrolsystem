@@ -2,35 +2,38 @@ import logging
 import numpy as np
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
-from tessellation import apply_tessellation
-from drone import Drone
-from terrain import Terrain
-from fly_controller import FlyController
-from config import TOLERANCE, GRID_SIZE, N_DRONES
-
 import sys
 import os
 import json
 
-# Aggiungi il percorso della cartella 'web-app' a sys.path
-web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web-app/'))
+
+
+from CoppeliaSim_project.config import TOLERANCE, N_DRONES
+from CoppeliaSim_project.drone import Drone
+from CoppeliaSim_project.fly_controller import FlyController
+from CoppeliaSim_project.terrain import Terrain
+from CoppeliaSim_project.tessellation import apply_tessellation
+from WebApp.api import save_matrix_processed, set_simulation_end, get_priority_matrix, set_coordinates
+
+# Aggiungi il percorso della cartella 'WebApp' a sys.path
+web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../WebApp/'))
 sys.path.append(web_app_path)
 
-# Ora puoi importare 'app' dalla cartella 'web-app'
-from api import save_matrix_processed, set_simulation_end, set_coordinates, get_priority_matrix
+# Ora puoi importare 'app' dalla cartella 'WebApp'
+
 
 # Percorso del file processed_matrices.json
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'web-app'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'WebApp'
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
 FILE_PATH = 'data/matrices.json'
-processed_matrix_path='data/processed_matrices.json'
+processed_matrix_path = 'data/processed_matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def initialize_simulation():
@@ -54,7 +57,6 @@ def create_s_path(centers, width):
     return s_path
 
 
-
 def initialize_drones(sim, n_drones):
     """Initialize drones with their starting configurations."""
     drones = []
@@ -69,11 +71,13 @@ def initialize_drones(sim, n_drones):
         drones.append(drone)
     return drones
 
+
 def load_processed_matrix(file_path):
     """Carica la matrice dal file specificato."""
     with open(file_path, 'r') as f:
         matrix = json.load(f)
     return matrix
+
 
 def find_value_coordinates(matrix, value):
     """Trova le coordinate delle caselle con il valore specificato."""
@@ -83,6 +87,7 @@ def find_value_coordinates(matrix, value):
             if cell == value:
                 coordinates.append((i, j))
     return coordinates
+
 
 def create_straight_path(coordinates):
     """Crea un percorso che attraversi tutte le coordinate con una linea retta."""
@@ -142,14 +147,14 @@ def run_simulation(sim, s_path, drones, fc):
 
         # Set a new target for the drone leader
         drones[0].calculate_new_path(center)
-        
+
         drone_reached = False
         while not drone_reached:
             drone_reached = True
 
             # standard coppelia sim frame steps are 50ms long, but we need it to be at most 1.5ms
             step = (sim.getSimulationTime() - prev_time) / 34
-            #logging.info(f"step size:  \n {step}")
+            # logging.info(f"step size:  \n {step}")
 
             if step > 0.0015:
                 step = 0.0015
@@ -174,27 +179,26 @@ def run_simulation(sim, s_path, drones, fc):
                 # update animation frame for slave robot
                 drones[1].next_animation_step(sub_step)
                 drones[2].next_animation_step(sub_step)
-                            
+
                 target_coordinate_1 = [float(coord) for coord in center[:3]]
                 target_coordinate_2 = [float(coord) for coord in out[1][:3]]
                 target_coordinate_3 = [float(coord) for coord in out[2][:3]]
 
                 # Check if the values of target_coordinate_2 and target_coordinate_3 are within ±1 of target_coordinate_1
                 if all(abs(t2 - t1) <= 0.5 for t1, t2 in zip(target_coordinate_1, target_coordinate_2)) and \
-                all(abs(t3 - t1) <= 0.5 for t1, t3 in zip(target_coordinate_1, target_coordinate_3)):
+                        all(abs(t3 - t1) <= 0.5 for t1, t3 in zip(target_coordinate_1, target_coordinate_3)):
                     # If the condition is met, use the given target coordinates
                     set_coordinates(target_coordinate_1, target_coordinate_2, target_coordinate_3)
                 else:
                     # If not, adjust target_coordinate_2 and target_coordinate_3 to target_coordinate_1 ± 1
                     adjusted_target_coordinate_2 = [t1 - 0.5 for t1 in target_coordinate_1]
                     adjusted_target_coordinate_3 = [t1 + 0.5 for t1 in target_coordinate_1]
-                    
+
                     # Call set_coordinates with adjusted coordinates
                     set_coordinates(target_coordinate_1, adjusted_target_coordinate_2, adjusted_target_coordinate_3)
             if not drones[0].has_reached_target():
                 drone_reached = False
             sim.step()
-        
 
     for i in range(grid_size):
         if i % 2 == 1:  # Se la riga è dispari
@@ -211,7 +215,7 @@ def main():
     try:
         sim = initialize_simulation()
 
-        priority_matrix = get_priority_matrix(FILE_PATH) 
+        priority_matrix = get_priority_matrix(FILE_PATH)
 
         terrain = Terrain(sim)
         tessellation_regular, tessellation_voronoi = apply_tessellation(terrain, priority_matrix)
@@ -235,7 +239,7 @@ def main():
         matrix = load_processed_matrix(processed_matrix_path)
         coordinates = find_value_coordinates(matrix, 3)
         path = create_straight_path(coordinates)
-        
+
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
@@ -245,13 +249,14 @@ def print_grid():
     global grid
     return grid
 
+
 def shutdown(sim):
     """Gracefully shut down the simulation and stop the drones."""
     try:
         # Stop the simulation
         sim.stopSimulation()
         logging.info("Simulation stopped successfully.")
-        
+
     except Exception as e:
         logging.error(f"An error occurred during shutdown: {e}")
 

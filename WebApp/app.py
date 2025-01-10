@@ -5,18 +5,22 @@ import json
 import sys
 from os.path import abspath, dirname
 import matplotlib
-matplotlib.use('TkAgg')  
+
+from CoppeliaSim_project.main import main
+from CoppeliaSim_project.main_tractors import main_tractors
+
+matplotlib.use('TkAgg')
 # Aggiungi il percorso di CoppeliaSim_project a sys.path
 sys.path.append(abspath(dirname(__file__) + '/../coppeliasim_project'))
 
 # Importa la funzione main dal file main.py per avviare la simulazione di CoppeliaSim
-from main import main, shutdown
-from main_tractors import main_tractors
+
+
 import api
 
 app = Flask(__name__)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'web-app'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'WebApp'
 
 FILE_PATH = os.path.join(BASE_DIR, '..', 'data', 'matrices.json')
 FILE_PATH = os.path.abspath(FILE_PATH)  # Assicurati che il percorso sia assoluto
@@ -24,7 +28,7 @@ FILE_PATH = os.path.abspath(FILE_PATH)  # Assicurati che il percorso sia assolut
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
-TEXTURE_PATH = os.path.join(BASE_DIR, 'web-app', 'texture.png')
+TEXTURE_PATH = os.path.join(BASE_DIR, 'WebApp', 'texture.png')
 TEXTURE_PATH = os.path.abspath(TEXTURE_PATH)  # Assicurati che il percorso sia assoluto
 
 file_lock = threading.Lock()
