@@ -10,6 +10,7 @@ from config import TOLERANCE, GRID_SIZE, N_DRONES
 
 import sys
 import os
+import json
 
 # Aggiungi il percorso della cartella 'web-app' a sys.path
 web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../web-app/'))
@@ -23,7 +24,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'web-app'
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
-FILE_PATH = '../data/matrices.json'
+FILE_PATH = 'data/matrices.json'
+processed_matrix_path='data/processed_matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
@@ -66,6 +68,35 @@ def initialize_drones(sim, n_drones):
         drone = Drone(sim, drone_id=str(i + 1), starting_config=initial_config[i])
         drones.append(drone)
     return drones
+
+def load_processed_matrix(file_path):
+    """Carica la matrice dal file specificato."""
+    with open(file_path, 'r') as f:
+        matrix = json.load(f)
+    return matrix
+
+def find_value_coordinates(matrix, value):
+    """Trova le coordinate delle caselle con il valore specificato."""
+    coordinates = []
+    for i, row in enumerate(matrix):
+        for j, cell in enumerate(row):
+            if cell == value:
+                coordinates.append((i, j))
+    return coordinates
+
+def create_straight_path(coordinates):
+    """Crea un percorso che attraversi tutte le coordinate con una linea retta."""
+    if not coordinates:
+        return []
+
+    # Ordina le coordinate per riga e poi per colonna
+    coordinates.sort()
+
+    # Crea un percorso che collega tutte le coordinate in modo sequenziale
+    path = [coordinates[0]]
+    for coord in coordinates[1:]:
+        path.append(coord)
+    return path
 
 
 def run_simulation(sim, s_path, drones, fc):
@@ -200,6 +231,10 @@ def main():
         run_simulation(sim, s_path, drones, fc)
 
         sim.stopSimulation()
+
+        matrix = load_processed_matrix(processed_matrix_path)
+        coordinates = find_value_coordinates(matrix, 3)
+        path = create_straight_path(coordinates)
         
     except Exception as e:
         logging.error(f"An error occurred: {e}")
