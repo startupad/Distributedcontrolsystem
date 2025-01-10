@@ -16,7 +16,7 @@ class Tractor:
         self.sim = sim
 
         #set up Virtual point B simulation param
-        self.b_distance =0.25
+        self.b_distance =0.2
         self.point_b_handle = 0
 
         self.tractor_handle = self.load_tractor_model()
@@ -24,7 +24,7 @@ class Tractor:
         # set up starting interpolation velocity
         self.velocity = 1
 
-        self.starting_config = [0.5, 0.5, 0.4, 0.00013, -0.7, 0.00036, 0.7]
+        self.starting_config = [0, 0, 0.3, 0.00013, -0.7, 0.00036, 0.7]
         self.sim.setObjectPosition(self.tractor_handle, self.starting_config, self.sim.handle_world)
 
         # set up path parameters
@@ -121,49 +121,42 @@ class Tractor:
         #calculating point b_pos
         actual_pos = self.sim.getObjectPosition(self.point_b_handle, self.sim.handle_world)
 
-        #calculate the angle between  the current pos and the next target one
-        theta = math.atan2(self.config_to_reach[1]-actual_pos[1], self.config_to_reach[0]-actual_pos[0])
+        # Calcolo dell'angolo utilizzando il prodotto scalare
+        cos_theta = np.dot(actual_pos[0:2], self.config_to_reach) / (np.linalg.norm(actual_pos[0:2]) * np.linalg.norm(self.config_to_reach))
+        theta = np.arccos(cos_theta)
 
+        print("theta", theta)
         # proportional control coefficient
-        k = 5
+        k = 0.3
         # virtual inputs
         vdx = k*(self.config_to_reach[0] - actual_pos[0])
         vdy = k*(self.config_to_reach[1] - actual_pos[1])
+        print("vdx", vdx, "vdy", vdy)
 
-        virtual_inputs_matrix = np.array([ [vdx], [vdy] ]) #matrice [ [vdx] ,
-                                                                 # [vdy] ]
-        matrix_point_vel = np.array([[ math.cos(theta), - self.b_distance* math.sin(theta) ],
-                                      [ math.sin(theta), self.b_distance* math.cos(theta) ]])
-
-        unicycle_velocity_matrix = np.linalg.inv(matrix_point_vel) * virtual_inputs_matrix
-        print(unicycle_velocity_matrix)
-
-        angular_vel = unicycle_velocity_matrix[0, 1]
-        linear_vel = unicycle_velocity_matrix[0, 0]
-
+        linear_vel = vdx * math.cos(theta) + vdy * math.sin(theta)
+        angular_vel = (vdy * math.cos(theta) - vdx * math.sin(theta)) / self.b_distance
+        print("linear vel: ", linear_vel, "angular vel: ", angular_vel)
         #calcolo delle velocità angolari da imporre alle singole ruote
         wheel_radius = 0.086 #[m]
         distance_between_wheels = 0.152 #[m]
-        Wr=1/wheel_radius*linear_vel-distance_between_wheels/(2*wheel_radius)*angular_vel
-        Wl=1/wheel_radius*linear_vel-distance_between_wheels/(2*wheel_radius)*angular_vel
-
+        Wr = (linear_vel + (distance_between_wheels / 2) * angular_vel) / wheel_radius
+        Wl = (linear_vel - (distance_between_wheels / 2) * angular_vel) / wheel_radius
+        print("Wr:", Wr, "Wl:", Wl)
         #applaying the calculated speed to the wheels
         leftJointHandle = self.sim.getObject(":/leftJoint_")
         rightJointHandle = self.sim.getObject(":/rightJoint_")
         self.sim.setJointTargetVelocity(leftJointHandle,Wl)
         self.sim.setJointTargetVelocity(rightJointHandle,Wr)
 
-        # updating the velocity used in the interpolation with the linear velocity computed
-        self.velocity = linear_vel
 
     def has_reached_target(self):
 
         """Check if the tractor has reached its target position."""
         # calculating point b_pos
         actual_pos = self.sim.getObjectPosition(self.point_b_handle, self.sim.handle_world)
-
+        print("actual_pos: ", actual_pos[0:2])
         target_pos = self.config_to_reach
-
+        print("target_pos: ", target_pos)
         # Check if the drone is close enough to the target position
         distance = np.linalg.norm(np.array(actual_pos[0:2]) - target_pos)
         #print("distance: ", distance)
@@ -171,6 +164,10 @@ class Tractor:
         if distance < TOLERANCE:
             self.posAlongPath +=1
             self.config_to_reach = self.path[self.posAlongPath]
+            if self.posAlongPath < len(self.path):
+                return False
+            else:
+                return True
         else:
             return False
 
