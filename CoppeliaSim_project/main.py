@@ -17,9 +17,6 @@ from WebApp.api import save_matrix_processed, set_simulation_end, get_priority_m
 web_app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../WebApp/'))
 sys.path.append(web_app_path)
 
-# Ora puoi importare 'app' dalla cartella 'WebApp'
-
-
 # Percorso del file processed_matrices.json
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # La cartella 'WebApp'
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
@@ -32,6 +29,8 @@ grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+tractor_path = []
 
 
 def initialize_simulation():
@@ -233,11 +232,6 @@ def main():
         run_simulation(sim, s_path, drones, fc)
 
         sim.stopSimulation()
-
-        matrix = load_processed_matrix(processed_matrix_path)
-        coordinates = find_value_coordinates(matrix, 3)
-        path = create_straight_path(coordinates)
-
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
