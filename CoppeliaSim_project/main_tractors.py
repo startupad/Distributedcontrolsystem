@@ -69,10 +69,10 @@ class Tractor:
         return (1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t ** 2 * p2
 
     def calculate_new_path(self, input_path):
-
+        print("input path: ", input_path)
         # Convertiamo la lista in un array NumPy per facilitare le operazioni
         mypath = np.array(input_path)
-
+        print("mypath: ", mypath)
         # Estraiamo le prime due colonne (i primi due valori di ogni sottoarray)
         primi_due_valori = mypath[:, :2]
 
@@ -217,5 +217,8 @@ def main_tractors():
     # Salva il path su un file
     path_file = os.path.join(os.path.dirname(__file__), 'path.json')
     save_path_to_file(path, path_file)
+    #pippo = [[2,3],[5,4]]
+    run_tractor_simulation(path_file)
 
-    run_tractor_simulation(path)
+if __name__ == "__main__":
+    main_tractors()

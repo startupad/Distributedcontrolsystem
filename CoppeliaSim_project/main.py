@@ -28,7 +28,7 @@ FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.j
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
 FILE_PATH = 'data/matrices.json'
-processed_matrix_path = 'data/processed_matrices.json'
+processed_matrix_path = '../data/processed_matrices.json'
 
 grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 
