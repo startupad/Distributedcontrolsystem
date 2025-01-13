@@ -1,3 +1,5 @@
+import json
+
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 import os
 import numpy as np
@@ -7,6 +9,8 @@ import math
 import matplotlib.pyplot as plt
 
 from CoppeliaSim_project.config import TOLERANCE
+from CoppeliaSim_project.main import load_processed_matrix, processed_matrix_path, find_value_coordinates, \
+    create_straight_path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -112,6 +116,10 @@ class Tractor:
         #plt.title('Grafico dei dati interpolati')
         #plt.legend()
 
+        plot_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interpolated_path.png')
+        plt.savefig(plot_file)
+        print(f"Plot saved to {plot_file}")
+
         # Mostriamo il grafico
         #plt.show()
 
@@ -170,7 +178,7 @@ class Tractor:
         else:
             return False
 
-def run_tractor_simulation():
+def run_tractor_simulation(path_to_follow):
     client = RemoteAPIClient()
     sim = client.require('sim')
     sim.setStepping(True)
@@ -182,14 +190,6 @@ def run_tractor_simulation():
 
     prev_time = 0
 
-    mypath = [[1, 1, 0.4, 0.00013, -0.7, 0.00036, 0.7],
-                  [2, 1, 0.4, 0.00013, -0.7, 0.00036, 0.7],
-                  [2, 2, 0.4, 0.00013, -0.7, 0.00036, 0.7],
-                  [3, 2, 0.4, 0.00013, -0.7, 0.00036, 0.7],
-                  [3, 3, 0.4, 0.00013, -0.7, 0.00036, 0.7],
-                  [2, 3, 0.4, 0.00013, -0.7, 0.00036, 0.7],
-                  [0.1, 5, 0.4, 0.00013, -0.7, 0.00036, 0.7]]
-    path_to_follow = mypath
 
     my_tract.calculate_new_path(path_to_follow)
 
@@ -201,7 +201,21 @@ def run_tractor_simulation():
 
     sim.stopSimulation()
 
+def save_path_to_file(path, file_path):
+    """Salva il path su un file JSON."""
+    with open(file_path, 'w') as f:
+        json.dump(path, f)
+    print(f"Path salvato su {file_path}")
+
 
 def main_tractors():
     print("Simulazione trattori avviata.")
-    run_tractor_simulation()
+    matrix = load_processed_matrix(processed_matrix_path)
+    coordinates = find_value_coordinates(matrix, 3)
+    path = create_straight_path(coordinates)
+
+    # Salva il path su un file
+    path_file = os.path.join(os.path.dirname(__file__), 'path.json')
+    save_path_to_file(path, path_file)
+
+    run_tractor_simulation(path)

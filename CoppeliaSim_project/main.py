@@ -35,6 +35,7 @@ grid = [[0 for _ in range(6)] for _ in range(6)]  # Creazione della griglia 6x6
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+tractor_path = []
 
 def initialize_simulation():
     """Initialize the simulation client and start the simulation."""
@@ -235,10 +236,6 @@ def main():
         run_simulation(sim, s_path, drones, fc)
 
         sim.stopSimulation()
-
-        matrix = load_processed_matrix(processed_matrix_path)
-        coordinates = find_value_coordinates(matrix, 3)
-        path = create_straight_path(coordinates)
 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
