@@ -28,7 +28,7 @@ FILE_PATH = os.path.abspath(FILE_PATH)  # Assicurati che il percorso sia assolut
 FILE_PATH_PROCESSED = os.path.join(BASE_DIR, '..', 'data', 'processed_matrices.json')
 FILE_PATH_PROCESSED = os.path.abspath(FILE_PATH_PROCESSED)  # Assicurati che il percorso sia assoluto
 
-TEXTURE_PATH = os.path.join(BASE_DIR, 'WebApp', 'texture.png')
+TEXTURE_PATH = os.path.join(BASE_DIR,'..', 'WebApp', 'texture.png')
 TEXTURE_PATH = os.path.abspath(TEXTURE_PATH)  # Assicurati che il percorso sia assoluto
 
 file_lock = threading.Lock()
@@ -75,8 +75,19 @@ def deploy_tractors():
     start_tractors()
     return jsonify({'status': 'Trattori avviati'}), 200
 
+
 @app.route('/start-simulation', methods=['POST'])
 def start_simulation():
+
+    # reset all the info saved inside the .txt files
+    with open("simulation_end.txt", "w") as file:
+        file.write("False")  # Valore predefinito
+    with open("coordinates.txt", "w") as file:
+        # Scriviamo ogni lista su una riga separata
+        file.write("list1: " + str([0,0,0]) + "\n")
+        file.write("list2: " + str([0,0,0]) + "\n")
+        file.write("list3: " + str([0,0,0]) + "\n")
+
     global simulation_thread
     print(\
         "Avvio della simulazione. Attendere qualche minuto per il completamento della simulazione.")
@@ -100,6 +111,8 @@ def start_simulation():
 
 @app.route('/start-tractors', methods=['POST'])
 def start_tractors():
+
+
     global simulation_tractors_thread
     if simulation_tractors_running.is_set():
         return jsonify({'error': 'La simulazione è già in esecuzione'}), 400
@@ -119,16 +132,11 @@ def start_tractors():
     return jsonify({'status': 'Simulazione avviata con successo'}), 200
 
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # Necessario per proiezioni 3D
-
-
 
 @app.route('/get-processed-matrix', methods=['GET'])
 def get_processed_matrix():
     simulation_end = api.get_simulation_end() 
     list1_copy, list2_copy, list3_copy = api.get_coordinates()
-
     x_values = [list1_copy[0], list2_copy[0], list3_copy[0]]
     y_values = [list1_copy[1], list2_copy[1], list3_copy[1]]
     z_values = [list1_copy[2], list2_copy[2], list3_copy[2]]

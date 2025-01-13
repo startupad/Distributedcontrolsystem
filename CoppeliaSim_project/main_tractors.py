@@ -104,16 +104,16 @@ class Tractor:
         y_interpolated = self.path[:, 1]
 
         # Creiamo il grafico
-        plt.plot(x_interpolated, y_interpolated, '-o', label='Dati interpolati')
+        #plt.plot(x_interpolated, y_interpolated, '-o', label='Dati interpolati')
 
         # Aggiungiamo una legenda e dei titoli
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        plt.title('Grafico dei dati interpolati')
-        plt.legend()
+        #plt.xlabel('X')
+        #plt.ylabel('Y')
+        #plt.title('Grafico dei dati interpolati')
+        #plt.legend()
 
         # Mostriamo il grafico
-        plt.show()
+        #plt.show()
 
 
     def next_animation_step(self, t_step):
