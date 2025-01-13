@@ -6,8 +6,6 @@ import sys
 import os
 import json
 
-
-
 from CoppeliaSim_project.config import TOLERANCE, N_DRONES
 from CoppeliaSim_project.drone import Drone
 from CoppeliaSim_project.fly_controller import FlyController
